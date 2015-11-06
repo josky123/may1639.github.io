@@ -1,0 +1,4 @@
+ListItr(int index){
+  super();
+  cursor=index;
+}

@@ -1,0 +1,4 @@
+private void ensureExplicitCapacity(int minCapacity){
+  modCount++;
+  if (minCapacity - elementData.length > 0)   grow(minCapacity);
+}

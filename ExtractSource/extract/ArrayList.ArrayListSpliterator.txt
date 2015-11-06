@@ -1,0 +1,9 @@
+/** 
+ * Create new spliterator covering the given  range 
+ */
+ArrayListSpliterator(ArrayList<E> list,int origin,int fence,int expectedModCount){
+  this.list=list;
+  this.index=origin;
+  this.fence=fence;
+  this.expectedModCount=expectedModCount;
+}
