@@ -8,6 +8,7 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.eclipse.jdt.core.*;
@@ -64,30 +65,103 @@ public class SourceParser
  
 		});
 		
+		/*
+		 * check if method or constructor
+		 * 
+		 * if method:
+		 * 
+		 * need to get:
+		 * javadoc			m.getJavadoc().toString();
+		 * annotations
+		 * modifiers
+		 * type parameters
+		 * return type
+		 * name
+		 * arguments (parameters)
+		 * thrown exceptions
+		 * body
+		 * 
+		 * if constructor:
+		 * 
+		 * need to get:
+		 * javadoc
+		 * annotations
+		 * modifiers
+		 * type parameters
+		 * name
+		 * arguments (parameters)
+		 * thrown exceptions
+		 * body
+		 */
+		
 		for (MethodDeclaration m: methods)
-		{
-//			String [] mods, params, exepts;
-//			String ret, name;
-//			String n = m.getName().getIdentifier();
-//			System.out.println(n);
-//			Type t = m.getReturnType2();
-//			String r = "";
-//			if (t != null)
-//				r = t.toString();
-//			System.out.println(r);
+		{		
+			// get javadoc
+			Javadoc jd = m.getJavadoc();
+			String jDoc = "";
+			if (jd != null)
+				jDoc = jd.toString();
+			//System.out.println(jDoc);
 			
-
-			try {
-				String text = m.toString();
-				Writer out;
-				out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("extract\\ArrayList." + m.getName() + ".txt")));
-				out.write(text);
-				out.close();
-				System.out.println(text + "\n");
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			
+			// get annotations and modifiers
+			ArrayList<IExtendedModifier> modifiers = new ArrayList<IExtendedModifier>();
+			modifiers.addAll(m.modifiers());
+			ArrayList<IExtendedModifier> mods = new ArrayList<IExtendedModifier>();
+			ArrayList<IExtendedModifier> anns = new ArrayList<IExtendedModifier>();
+			if (!modifiers.isEmpty())
+			{
+				for(IExtendedModifier iem: modifiers)
+				{
+					if (iem.isAnnotation())
+						anns.add(iem);
+					else if (iem.isModifier())
+						mods.add(iem);
+				}
 			}
+			anns.trimToSize();
+			mods.trimToSize();
+			
+			// get names of annotations and modifiers
+			ArrayList<String> annNames = new ArrayList<String>();
+			ArrayList<String> modNames = new ArrayList<String>();		
+			if (!anns.isEmpty())
+			{
+				for (IExtendedModifier iem: anns)
+				{
+					annNames.add(iem.toString());
+				}
+			}
+			if (!mods.isEmpty())
+			{
+				for (IExtendedModifier iem: mods)
+				{
+					modNames.add(iem.toString());
+				}
+			}
+			
+//			if (!annNames.isEmpty())
+//				System.out.println(annNames.toString());
+//			if (!modNames.isEmpty())
+//				System.out.println(modNames.toString());
+			
+			// get type parameters
+			ArrayList<TypeParameter> tp = new ArrayList<TypeParameter>();
+			tp.addAll(m.typeParameters());
+//			if (!tp.isEmpty())
+//				System.out.println(tp.get(0).toString());
+			
+//			try {
+				String text = m.toString();
+//				Writer out;
+//				out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("extract\\ArrayList." + m.getName() + ".txt")));
+//				out.write(text);
+//				out.close();
+				System.out.println(text + "\n");
+//			} catch (Exception e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
 			
 			
 		}
