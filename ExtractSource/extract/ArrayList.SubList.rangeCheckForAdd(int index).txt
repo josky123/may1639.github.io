@@ -1,0 +1,3 @@
+private void rangeCheckForAdd(int index){
+  if (index < 0 || index > this.size)   throw new IndexOutOfBoundsException(outOfBoundsMsg(index));
+}

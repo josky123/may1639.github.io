@@ -16,14 +16,22 @@ import org.eclipse.jdt.core.dom.*;
 
 public class SourceParser 
 {
-	private boolean publicOnly = false;
+	private boolean ignorePrivate = false;
 	private boolean outerClassOnly = false;
 	
-	public SourceParser() {}
+	private List<ParsedMethod> parsedMethods;
+	private List<ParsedType> parsedTypes;
 	
-	public SourceParser(boolean publicOnly, boolean outerClassOnly) {
-		this.publicOnly = publicOnly;
+	public SourceParser() {
+		parsedMethods = new ArrayList<ParsedMethod>();
+		parsedTypes = new ArrayList<ParsedType>();
+	}
+	
+	public SourceParser(boolean ignorePrivate, boolean outerClassOnly) {
+		this.ignorePrivate = ignorePrivate;
 		this.outerClassOnly = outerClassOnly;
+		parsedMethods = new ArrayList<ParsedMethod>();
+		parsedTypes = new ArrayList<ParsedType>();
 	}
 	
 	/**
@@ -31,7 +39,7 @@ public class SourceParser
 	 * @param b
 	 */
 	public void setPublicOnly(boolean b) {
-		publicOnly = b;
+		ignorePrivate = b;
 	}
 	
 	/**
@@ -40,6 +48,14 @@ public class SourceParser
 	 */
 	public void setOuterClassOnly(boolean b) {
 		outerClassOnly = b;
+	}
+	
+	public List<ParsedMethod> getParsedMethods() {
+		return parsedMethods;
+	}
+	
+	public List<ParsedType> getParsedTypes() {
+		return parsedTypes;
 	}
 	
 	private String getSourceText(String path)
@@ -57,6 +73,7 @@ public class SourceParser
 			while ( (line = br.readLine()) != null) {
 				sb.append(line + "\r\n");			
 			}
+			br.close();
 			return sb.toString();
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -64,7 +81,14 @@ public class SourceParser
 		return null;
 	}
 	
-	private String getJavaDoc(MethodDeclaration m) {
+//	private String getJavaDoc(MethodDeclaration m) {
+//		Javadoc jd = m.getJavadoc();
+//		String jDoc = "";
+//		if (jd != null)
+//			jDoc = jd.toString();
+//		return jDoc;
+//	}
+	private String getJavaDoc(BodyDeclaration m) {
 		Javadoc jd = m.getJavadoc();
 		String jDoc = "";
 		if (jd != null)
@@ -72,7 +96,7 @@ public class SourceParser
 		return jDoc;
 	}
 	
-	private List<String> getAnnotations(MethodDeclaration m) {
+	private List<String> getAnnotations(BodyDeclaration m) {
 		ArrayList<IExtendedModifier> modifiers = new ArrayList<IExtendedModifier>();
 		modifiers.addAll(m.modifiers());
 		ArrayList<IExtendedModifier> anns = new ArrayList<IExtendedModifier>();
@@ -92,7 +116,7 @@ public class SourceParser
 		return annNames;
 	}
 	
-	private List<String> getModifiers(MethodDeclaration m) {
+	private List<String> getModifiers(BodyDeclaration m) {
 		ArrayList<IExtendedModifier> modifiers = new ArrayList<IExtendedModifier>();
 		modifiers.addAll(m.modifiers());
 		ArrayList<IExtendedModifier> mods = new ArrayList<IExtendedModifier>();
@@ -121,6 +145,33 @@ public class SourceParser
 		return typeNames;
 	}
 	
+	private List<String> getTypeParameters(TypeDeclaration td) {
+		ArrayList<TypeParameter> tp = new ArrayList<TypeParameter>();
+		tp.addAll(td.typeParameters());
+		ArrayList<String> typeNames = new ArrayList<String>();
+		for (TypeParameter t: tp)
+			typeNames.add(t.getName().toString());
+		return typeNames;
+	}
+	
+	private List<List<String>> getTypeParameterBindings(TypeDeclaration td) {
+		ArrayList<TypeParameter> tp = new ArrayList<TypeParameter>();
+		ArrayList<List<Type>> tpBounds = new ArrayList<List<Type>>();
+		tp.addAll(td.typeParameters());
+		for (TypeParameter temp: tp) {
+			tpBounds.add(temp.typeBounds());
+		}
+		ArrayList<List<String>> bounds = new ArrayList<List<String>>();
+		for (List<Type> temp: tpBounds)	{
+			ArrayList<String> als = new ArrayList<String>();
+			for (Type t: temp) {
+				als.add(t.toString());
+			}
+			bounds.add(als);
+		}
+		return bounds;
+	}
+	
 	private List<List<String>> getTypeParameterBindings(MethodDeclaration m) {
 		ArrayList<TypeParameter> tp = new ArrayList<TypeParameter>();
 		ArrayList<List<Type>> tpBounds = new ArrayList<List<Type>>();
@@ -137,6 +188,24 @@ public class SourceParser
 			bounds.add(als);
 		}
 		return bounds;
+	}
+	
+	private String getSuperclass(TypeDeclaration td) {
+		Type t = td.getSuperclassType();
+		if (t == null)
+			return "null";
+		else
+			return t.toString();
+	}
+	
+	private List<String> getSuperInterfaces(TypeDeclaration td) {
+		ArrayList<Type> interfaces = new ArrayList<Type>();
+		interfaces.addAll(td.superInterfaceTypes());
+		ArrayList<String> names = new ArrayList<String>();
+		for (Type t: interfaces) {
+			names.add(t.toString());
+		}
+		return names;
 	}
 	
 	private String getReturnType(MethodDeclaration m) {
@@ -189,6 +258,14 @@ public class SourceParser
 		return parent.getName().toString();
 	}
 	
+	private String getContainingClass(TypeDeclaration td) {
+		ASTNode p = td.getParent();
+		if (p instanceof TypeDeclaration)
+			return ((TypeDeclaration) p).getName().toString();
+		else
+			return "null";
+	}
+	
 	private String getOuterClass(MethodDeclaration m) {
 		ASTNode root = m;
 		while ( root.getParent().getParent() != null ) {
@@ -197,6 +274,15 @@ public class SourceParser
 		TypeDeclaration outerClass = (TypeDeclaration) root;
 		return outerClass.getName().toString();
 	}
+	
+	private boolean isInnerClass(TypeDeclaration td) {
+		ASTNode p = td.getParent();
+		if (p instanceof TypeDeclaration)
+			return true;
+		else
+			return false;
+	}
+	
 	/**
 	 * Creates a ParsedMethod object from a MethodDeclaration
 	 * @param m
@@ -221,7 +307,53 @@ public class SourceParser
 		pm.setSource(m.toString());
 		pm.setContainingClass(getContainingClass(m));
 		pm.setOuterClass(getOuterClass(m));
+		
+		// exclusion conditionals
+		if (ignorePrivate) {
+			if ( Modifier.isPrivate( m.getModifiers() ) ) {
+				return null;
+			}
+		}
+		if (outerClassOnly) { 
+			if (pm.inInnerClass()) {
+				return null;
+			}
+		}
+		
+		parsedMethods.add(pm);
 		return pm;
+	}
+	
+	private ParsedType parseType(TypeDeclaration t) {
+		ParsedType pt = new ParsedType();
+		pt.setIsInterface(t.isInterface());
+		pt.setIsInnerClass(isInnerClass(t));
+		pt.setJavadoc(getJavaDoc(t));
+		pt.setAnnotations(getAnnotations(t));
+		pt.setModifiers(getModifiers(t));
+		pt.setName(t.getName().toString());
+		pt.setTypeParameters(getTypeParameters(t));
+		pt.setTypeParameterBindings(getTypeParameterBindings(t));
+		pt.setSuperClass(getSuperclass(t));
+		pt.setInterfaces(getSuperInterfaces(t));
+//		pt.setBody();
+		pt.setSource(t.toString());
+		pt.setContainingClass(getContainingClass(t));
+		
+		// exclusion conditionals
+		if (ignorePrivate) {
+			if ( Modifier.isPrivate( t.getModifiers() ) ) {
+				return null;
+			}
+		}
+		if (outerClassOnly) { 
+			if (pt.isInnerClass()) {
+				return null;
+			}
+		}
+		
+		parsedTypes.add(pt);
+		return pt;
 	}
 	
 	/**
@@ -231,26 +363,16 @@ public class SourceParser
 	 * @return
 	 * 		List of ParsedMethod objects
 	 */
-	private List<ParsedMethod> parseMethods(List<MethodDeclaration> m) {
-		ArrayList<ParsedMethod> pms = new ArrayList<ParsedMethod>();
+	private void parseMethods(List<MethodDeclaration> m) {
 		for (MethodDeclaration temp: m) {
-			
-			ParsedMethod pm = parseMethod(temp);
-			
-			// hacked together conditionals
-			if (publicOnly) {
-				if ( Modifier.isPrivate( temp.getModifiers() ) ) {
-					continue;
-				}
-			}
-			if (outerClassOnly) { 
-				if (pm.inInnerClass()) {
-					continue;
-				}
-			}
-			pms.add(pm);
+			parseMethod(temp);
 		}
-		return pms;
+	}
+	
+	private void parseTypes(List<TypeDeclaration> t) {
+		for (TypeDeclaration temp: t) {
+			parseType(temp);
+		}
 	}
 	
 	/**
@@ -260,9 +382,9 @@ public class SourceParser
 	 * @return
 	 * 		List of ParsedMethod objects
 	 */
-	public List<ParsedMethod> parse(String path) {
+	public void parse(String path) {
 		String source = getSourceText(path);
-		return parseSource(source);
+		parseSource(source);
 	}
 	
 	/**
@@ -272,9 +394,9 @@ public class SourceParser
 	 * @return
 	 * 		List of ParsedMethod objects
 	 */
-	public List<ParsedMethod> parse(File file) {
+	public void parse(File file) {
 		String source = getSourceText(file);
-		return parseSource(source);
+		parseSource(source);
 	}
 	
 	/**
@@ -282,20 +404,27 @@ public class SourceParser
 	 * @param source
 	 * @return
 	 */
-	private List<ParsedMethod> parseSource(String source) {
+	private void parseSource(String source) {
 		ASTParser parser = ASTParser.newParser(AST.JLS3);
 		parser.setResolveBindings(true);
 		parser.setSource(source.toCharArray());
 		parser.setKind(ASTParser.K_COMPILATION_UNIT);
 		final CompilationUnit cu = (CompilationUnit) parser.createAST(null);
 		ArrayList<MethodDeclaration> methods = new ArrayList<MethodDeclaration>();
+		ArrayList<TypeDeclaration> types = new ArrayList<TypeDeclaration>();
 		
 		cu.accept(new ASTVisitor() {
+			public boolean visit(TypeDeclaration node) {
+				types.add(node);
+				return true;
+			}
+			
 			public boolean visit(MethodDeclaration node) {
 				methods.add(node);
 				return false; // do not continue to avoid usage info
-			}
+			}			
 		});
-		return parseMethods(methods);
+		parseTypes(types);
+		parseMethods(methods);
 	}
 }
