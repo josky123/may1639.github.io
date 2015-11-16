@@ -1,8 +1,9 @@
+import java.sql.SQLException;
 import java.util.ArrayList;
 
 public class Client 
 {	
-	public static void main(String [] args)
+	public static void main(String [] args) throws SQLException
 	{
 		//SourceParser sp = new SourceParser(true, true);
 		SourceParser sp = new SourceParser(false, false);
@@ -17,10 +18,11 @@ public class Client
 //		}
 		
 		// print modifiers + file name
-		for (ParsedMethod p: pms)
-		{
-			System.out.println(p.getModifiers() + " " + p.getFileName());
-		}
+//		for (ParsedMethod p: pms)
+//		{
+//			//System.out.println(p.getModifiers() + " " + p.getFileName());
+//			System.out.println(p.getTypeParameterBindings());
+//		}
 
 		// print class names + isInnerClass
 //		for (ParsedType pt: pts) {
@@ -30,5 +32,13 @@ public class Client
 //		for (ParsedType pt: pts) {
 //			System.out.println(pt.getFileName());
 //		}
+		
+		DatabaseManager dm = new DatabaseManager(pms, pts);
+		dm.connect();
+		dm.createMethodsTable();
+		dm.createTypesTable();
+		dm.close();
+		
+		
 	}
 }
