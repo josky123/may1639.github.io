@@ -121,16 +121,16 @@ public class DatabaseManager
 			addMeth.setInt    (1,  ct);
 			addMeth.setBoolean(2,  pm.isConstructor());
 			addMeth.setString (3,  pm.getJavadoc());
-			addMeth.setString (4,  pm.getAnnotations().toString());
-			addMeth.setString (5,  pm.getModifiers().toString());
-			addMeth.setString (6,  pm.getTypeParameters().toString());
-			addMeth.setString (7,  pm.getTypeParameterBindings().toString());
+			addMeth.setString (4,  listToString(pm.getAnnotations()));
+			addMeth.setString (5,  listToString(pm.getModifiers()));
+			addMeth.setString (6,  listToString(pm.getTypeParameters()));
+			addMeth.setString (7,  listToString(pm.getTypeParameterBindings()));
 			addMeth.setString (8,  pm.getReturnType());
 			addMeth.setString (9,  pm.getName());
-			addMeth.setString (10, pm.getArguments().toString());
+			addMeth.setString (10, listToString(pm.getArguments()));
 			addMeth.setInt    (11, pm.getNumArguments());
-			addMeth.setString (12, pm.getArgumentTypes().toString());
-			addMeth.setString (13, pm.getThrownExceptions().toString());
+			addMeth.setString (12, listToString(pm.getArgumentTypes()));
+			addMeth.setString (13, listToString(pm.getThrownExceptions()));
 			addMeth.setString (14, pm.getBody());
 			addMeth.setString (15, pm.getSource());
 			addMeth.setString (16, pm.getContainingClass());
@@ -199,13 +199,13 @@ public class DatabaseManager
 			addType.setBoolean(2,  pt.isInterface());
 			addType.setBoolean(3,  pt.isInnerClass());
 			addType.setString (4,  pt.getJavadoc());
-			addType.setString (5,  pt.getAnnotations().toString());
-			addType.setString (6,  pt.getModifiers().toString());
+			addType.setString (5,  listToString(pt.getAnnotations()));
+			addType.setString (6,  listToString(pt.getModifiers()));
 			addType.setString (7,  pt.getName());
-			addType.setString (8,  pt.getTypeParameters().toString());
-			addType.setString (9,  pt.getTypeParameterBindings().toString());
+			addType.setString (8,  listToString(pt.getTypeParameters()));
+			addType.setString (9,  listToString(pt.getTypeParameterBindings()));
 			addType.setString (10, pt.getSuperClass());
-			addType.setString (11, pt.getInterfaces().toString());
+			addType.setString (11, listToString(pt.getInterfaces()));
 			addType.setString (12, pt.getSource());
 			addType.setString (13, pt.getContainingClass());
 			
@@ -215,5 +215,23 @@ public class DatabaseManager
 		}
 		addType.close();
 		System.out.println("***** Table \"types\" Populated *****\n");
+	}
+	
+	public <T> String listToString(List<T> list)
+	{
+		StringBuilder sb = new StringBuilder();
+		Iterator it = list.iterator();
+		while (it.hasNext())
+		{	T t = (T) it.next();
+			if (List.class.isAssignableFrom(t.getClass()))
+				listToString((List<T>) t);
+			else
+			{
+				sb.append(t.toString());
+				if (it.hasNext())
+					sb.append(",");
+			}
+		}
+		return sb.toString();
 	}
 }
