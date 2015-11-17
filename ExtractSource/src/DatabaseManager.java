@@ -37,10 +37,12 @@ public class DatabaseManager
 		// Connect to the database
 //		Connection conn;
 		
+		
+//		//String dbUrl = "jdbc:mysql://sdweb.ece.iastate.edu/may1639_db";
+//		String dbUrl = "jdbc:mysql://may1639.sd.ece.iastate.edu:622/may1639_db";
+//		String user = "may1639";
+//		String pass = "9nbje09p";
 		String dbUrl = "jdbc:mysql://localhost/source";
-		//String dbUrl = "jdbc:mysql://sdweb.ece.iastate.edu/may1639";
-		//String user = "may1639";
-		//String pass = "9nbje09p";
 		String user = "root";
 		String pass = "root";
 		
@@ -96,7 +98,7 @@ public class DatabaseManager
 							 "ThrownExceptions text," +		//13
 							 "Body text," +					//14
 							 "Source text," +				//15
-							 "ContainingClass text," +		//16
+							 "ContainingClass text," +		//16  change to declaring class
 							 "OuterClass text," +			//17
 							 "primary key (ID) )" 
 							);
