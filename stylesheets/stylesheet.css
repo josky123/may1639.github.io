@@ -266,15 +266,15 @@ Full-Width Styles
 
 .inner {
   position: relative;
-  max-width: 640px;
-  padding: 20px 10px;
+  max-width: 1000px;
+  padding: 10px 5px;
   margin: 0 auto;
 }
 
 .outer_inner{
   position: relative;
   max-width: 800px;
-  padding: 20px 10px;
+  padding: 10px 5px;
   margin: 0 auto;
 }
 
@@ -303,7 +303,7 @@ Full-Width Styles
 }
 
 #header_wrap .inner {
-  padding: 50px 10px 30px 10px;
+  padding: 25px 5px 15px 5px;
 }
 
 #project_title {
@@ -312,14 +312,16 @@ Full-Width Styles
   font-size: 42px;
   font-weight: 700;
   text-shadow: #111 0px 0px 10px;
+  text-align: center;
 }
 
-#project_tagline {
+#title_content {
   color: #fff;
-  font-size: 24px;
-  font-weight: 300;
+  font-size: 20px;
+  font-weight: 400;
   background: none;
   text-shadow: #111 0px 0px 10px;
+  text-align: center;
 }
 
 #downloads {
@@ -362,13 +364,56 @@ Full-Width Styles
 }
 
 #main_content_wrap {
-  background: #f2f2f2;
-  border-top: 1px solid #111;
-  border-bottom: 1px solid #111;
+  background: url(../images/squares2.png) repeat top left;
+  border-top: 1px solid #666666;
+  border-bottom: 1px solid #666666;
 }
 
 #main_content {
-  padding-top: 40px;
+  background-color: #f2f2f2;
+  /*padding-top: 30px;*/
+  padding: 15px 20px;
+  height: 600px;
+  border-left: 1px solid #666666;
+  border-right: 1px solid #666666;
+}
+
+#menu_section {
+  background-color: #E2E2E2;
+  height: 40px;
+  width: 100%;
+}
+
+#menu_div {
+  position: relative;
+  max-width: 1000px;
+  padding: 0px;
+  margin: 0 auto;
+}
+
+#menu_bar {
+    list-style-type: none;
+}
+
+#menu_bar li {
+   float: left;
+}
+
+#menu_bar a:link, a:visited {
+    display: block;
+    width: 150px;
+    font-weight: bold;
+    color: #000000;
+    background-color: #E2E2E2;
+    text-align: center;
+    padding: 4px;
+    text-decoration: none;
+    text-transform: uppercase;
+	line-height: 32px;
+}
+
+#menu_bar a:hover, a:active {
+    background-color: #A2A2A2;
 }
 
 #footer_wrap {
