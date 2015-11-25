@@ -23,7 +23,7 @@ public class ParsedMethod
 	private List<String> thrownExceptions;
 	private String body;
 	private String source;
-	private String containingClass;
+	private String declaringClass;
 	private String outerClass;
 	
 	public ParsedMethod() {}
@@ -86,8 +86,8 @@ public class ParsedMethod
 		return source;
 	}
 	
-	public String getContainingClass() {
-		return containingClass;
+	public String getDeclaringClass() {
+		return declaringClass;
 	}
 	
 	public String getOuterClass() {
@@ -149,8 +149,8 @@ public class ParsedMethod
 		source = s;
 	}
 	
-	public void setContainingClass(String s) {
-		containingClass = s;
+	public void setDeclaringClass(String s) {
+		declaringClass = s;
 	}
 	
 	public void setOuterClass(String s) {
@@ -160,7 +160,7 @@ public class ParsedMethod
 	// do stuff
 	
 	public boolean inInnerClass() {
-		if (containingClass.equals(outerClass))
+		if (declaringClass.equals(outerClass))
 			return false;
 		return true;
 	}
@@ -168,9 +168,9 @@ public class ParsedMethod
 	public String getFileName() {
 		StringBuilder fName = new StringBuilder();
 		if (this.inInnerClass())
-			fName.append(outerClass + "." + containingClass + "." + name + "(");
+			fName.append(outerClass + "." + declaringClass + "." + name + "(");
 		else
-			fName.append(containingClass + "." + name + "(");
+			fName.append(declaringClass + "." + name + "(");
 		Iterator it = arguments.iterator();
 		while(it.hasNext())
 		{

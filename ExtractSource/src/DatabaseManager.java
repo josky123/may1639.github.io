@@ -98,7 +98,7 @@ public class DatabaseManager
 							 "ThrownExceptions text," +		//13
 							 "Body text," +					//14
 							 "Source text," +				//15
-							 "ContainingClass text," +		//16  change to declaring class
+							 "DeclaringClass text," +		//16  change to declaring class
 							 "OuterClass text," +			//17
 							 "primary key (ID) )" 
 							);
@@ -110,7 +110,7 @@ public class DatabaseManager
 														   "Javadoc, Annotations, Modifiers, TypeParams, " + 
 														   "TypeParamBindings, ReturnType, Name, Arguments, " +
 														   "NumArguments, ArgumentTypes, ThrownExceptions, " +
-														   "Body, Source, ContainingClass, OuterClass)" + 
+														   "Body, Source, DeclaringClass, OuterClass)" + 
 														   "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
 														   );
 		Iterator mIt = methods.iterator();
@@ -135,7 +135,7 @@ public class DatabaseManager
 			addMeth.setString (13, listToString(pm.getThrownExceptions()));
 			addMeth.setString (14, pm.getBody());
 			addMeth.setString (15, pm.getSource());
-			addMeth.setString (16, pm.getContainingClass());
+			addMeth.setString (16, pm.getDeclaringClass());
 			addMeth.setString (17, pm.getOuterClass());
 			
 			addMeth.executeUpdate();
@@ -177,7 +177,7 @@ public class DatabaseManager
 							 "SuperClass text," +			//10
 							 "Interfaces text," +			//11
 							 "Source text," +				//12
-							 "ContainingClass text," +		//13
+							 "DeclaringClass text," +		//13
 							 "primary key (ID) )" 
 							);
 		create.close();
@@ -187,7 +187,7 @@ public class DatabaseManager
 		PreparedStatement addType = conn.prepareStatement ("insert into types (ID, IsInterface, " +
 														   "IsInnerClass, Javadoc, Annotations, Modifiers, " + 
 														   "Name, TypeParams, TypeParamBindings, SuperClass, " +
-														   "Interfaces, Source, ContainingClass)" +
+														   "Interfaces, Source, DeclaringClass)" +
 														   "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
 														   );
 		Iterator typeIt = types.iterator();
@@ -209,7 +209,7 @@ public class DatabaseManager
 			addType.setString (10, pt.getSuperClass());
 			addType.setString (11, listToString(pt.getInterfaces()));
 			addType.setString (12, pt.getSource());
-			addType.setString (13, pt.getContainingClass());
+			addType.setString (13, pt.getDeclaringClass());
 			
 			addType.executeUpdate();
 			System.out.println("***** Inserted Row " + ct + "*****");

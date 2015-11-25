@@ -54,7 +54,9 @@ public class ParsedType
 	private List<String> interfaces;
 	//private String body;
 	private String source;
-	private String containingClass;
+	private String declaringClass;
+	private String fpackage;
+	private String library;
 	
 	// Getter Methods
 	
@@ -106,8 +108,16 @@ public class ParsedType
 		return source;
 	}
 	
-	public String getContainingClass() {
-		return containingClass;
+	public String getDeclaringClass() {
+		return declaringClass;
+	}
+	
+	public String getPackage() {
+		return fpackage;
+	}
+	
+	public String getLibrary() {
+		return library;
 	}
 		
 	// Setter Methods
@@ -160,8 +170,16 @@ public class ParsedType
 		source = s;
 	}
 	
-	public void setContainingClass(String s) {
-		containingClass = s;
+	public void setDeclaringClass(String s) {
+		declaringClass = s;
+	}
+	
+	public void setPackage(String s) {
+		fpackage = s;
+	}
+	
+	public void setLibrary(String s) {
+		library = s;
 	}
 	
 	// do stuff
@@ -170,7 +188,7 @@ public class ParsedType
 		StringBuilder fName = new StringBuilder();
 		if (this.isInnerClass)
 		{
-			if (!containingClass.equals("null"))
+			if (!declaringClass.equals("null"))
 				fName.append(superClass + "." + name + ".txt");
 			else
 				fName.append(name + ".txt");

@@ -21,6 +21,9 @@ public class SourceParser
 	
 	private List<ParsedMethod> parsedMethods;
 	private List<ParsedType> parsedTypes;
+	private String filePackage;
+	private String library;
+	private File sourceFile;
 	
 	public SourceParser() {
 		parsedMethods = new ArrayList<ParsedMethod>();
@@ -81,13 +84,17 @@ public class SourceParser
 		return null;
 	}
 	
-//	private String getJavaDoc(MethodDeclaration m) {
-//		Javadoc jd = m.getJavadoc();
-//		String jDoc = "";
-//		if (jd != null)
-//			jDoc = jd.toString();
-//		return jDoc;
-//	}
+	private void setLibraryAndPackage(String path)
+	{
+		File file = new File(path);
+		setLibraryAndPackage(file);
+	}
+	
+	private void setLibraryAndPackage(File file)
+	{
+		
+	}
+	
 	private String getJavaDoc(BodyDeclaration m) {
 		Javadoc jd = m.getJavadoc();
 		String jDoc = "";
@@ -210,8 +217,13 @@ public class SourceParser
 	
 	private String getReturnType(MethodDeclaration m) {
 		String retType;
-		if (!m.isConstructor())
-			retType = m.getReturnType2().toString();
+		if ( !m.isConstructor())
+		{
+			if (m.getReturnType2() != null)
+				retType = m.getReturnType2().toString();
+			else
+				retType = "void"; 
+		}
 		else
 			retType = m.getName().toString();
 		return retType;
@@ -254,8 +266,11 @@ public class SourceParser
 	}
 	
 	private String getContainingClass(MethodDeclaration m) {
-		TypeDeclaration parent = (TypeDeclaration) m.getParent();
-		return parent.getName().toString();
+		ASTNode parent = m.getParent();
+		if(TypeDeclaration.class.isAssignableFrom(parent.getClass()))
+			return ((TypeDeclaration) parent).getName().toString();
+		else
+			return "";
 	}
 	
 	private String getContainingClass(TypeDeclaration td) {
@@ -303,9 +318,12 @@ public class SourceParser
 		pm.setArguments(getArguments(m));
 		pm.setArgumentTypes(getArgumentTypes(m));
 		pm.setThrownExceptions(getThrownExceptions(m));
-		pm.setBody(m.getBody().toString());
+		if ( !(m.getBody() == null) )
+			pm.setBody(m.getBody().toString());
+		else
+			pm.setBody("");
 		pm.setSource(m.toString());
-		pm.setContainingClass(getContainingClass(m));
+		pm.setDeclaringClass(getContainingClass(m));
 		pm.setOuterClass(getOuterClass(m));
 		
 		// exclusion conditionals
@@ -338,7 +356,7 @@ public class SourceParser
 		pt.setInterfaces(getSuperInterfaces(t));
 //		pt.setBody();
 		pt.setSource(t.toString());
-		pt.setContainingClass(getContainingClass(t));
+		pt.setDeclaringClass(getContainingClass(t));
 		
 		// exclusion conditionals
 		if (ignorePrivate) {
@@ -384,6 +402,7 @@ public class SourceParser
 	 */
 	public void parse(String path) {
 		String source = getSourceText(path);
+		sourceFile = new File(path);
 		parseSource(source);
 	}
 	
@@ -396,6 +415,7 @@ public class SourceParser
 	 */
 	public void parse(File file) {
 		String source = getSourceText(file);
+		sourceFile = file;
 		parseSource(source);
 	}
 	

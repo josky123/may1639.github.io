@@ -1,3 +1,4 @@
+import java.io.File;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
@@ -6,10 +7,10 @@ public class Client
 	public static void main(String [] args) throws SQLException
 	{
 		//SourceParser sp = new SourceParser(true, true);
-		SourceParser sp = new SourceParser(false, false);
-		sp.parse("javasource\\jdk1.8.0_66\\java\\util\\ArrayList.java");
-		ArrayList<ParsedMethod> pms = (ArrayList<ParsedMethod>) sp.getParsedMethods();
-		ArrayList<ParsedType> pts = (ArrayList<ParsedType>) sp.getParsedTypes();
+//		SourceParser sp = new SourceParser(false, false);
+//		sp.parse("javasource\\jdk1.8.0_66\\java\\util\\ArrayList.java");
+//		ArrayList<ParsedMethod> pms = (ArrayList<ParsedMethod>) sp.getParsedMethods();
+//		ArrayList<ParsedType> pts = (ArrayList<ParsedType>) sp.getParsedTypes();
 		
 		// write source to file
 //		for (ParsedMethod p: pms)
@@ -33,11 +34,18 @@ public class Client
 //			System.out.println(pt.getFileName());
 //		}
 		
-		DatabaseManager dm = new DatabaseManager(pms, pts);
-		dm.connect();
-		dm.createMethodsTable();
-		dm.createTypesTable();
-		dm.close();
+		File root = new File("javasource");
+		FileWalker fw = new FileWalker(true, false);
+		fw.extractAll(root);
+		fw.printData();
+		
+		
+		
+//		DatabaseManager dm = new DatabaseManager(pms, pts);
+//		dm.connect();
+//		dm.createMethodsTable();
+//		dm.createTypesTable();
+//		dm.close();
 		
 		
 	}
