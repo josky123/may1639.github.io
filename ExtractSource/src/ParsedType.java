@@ -36,7 +36,6 @@ public class ParsedType
 	 * type parameter bindings
 	 * superclass (extends Type)
 	 * if class: implemented interfaces
-	 * Class body || interface body
 	 * 
 	 * source
 	 */

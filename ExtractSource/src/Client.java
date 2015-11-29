@@ -37,7 +37,13 @@ public class Client
 		File root = new File("javasource");
 		FileWalker fw = new FileWalker(true, false);
 		fw.extractAll(root);
-		fw.printData();
+		//fw.printData();
+		
+		DatabaseManager dm = new DatabaseManager(fw.getData());
+		dm.connect();
+		dm.buildDatabase();
+		dm.addData();
+		dm.close();
 		
 		
 		

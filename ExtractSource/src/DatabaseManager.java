@@ -1,10 +1,16 @@
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
 // Small test class for JDBC. Ignore.
 public class DatabaseManager 
 {
+	// data to add to the database
+	private HashMap<String, HashMap<String, ArrayList<SourceParser>>> data;
+	// int to create unique id for entries.  Increment after use.
+	
 	private static boolean debug = true;
 	private List<ParsedMethod> methods;
 	private List<ParsedType> types;
@@ -14,6 +20,10 @@ public class DatabaseManager
 	{
 		methods = m;
 		types = t;
+	}
+	
+	public DatabaseManager(HashMap<String, HashMap<String, ArrayList<SourceParser>>> data) {
+		this.data = data;
 	}
 	
 	/**
@@ -34,15 +44,13 @@ public class DatabaseManager
 			e.printStackTrace();
 		}
 		
-		// Connect to the database
-//		Connection conn;
-		
+		// Connect to the database		
 		
 //		//String dbUrl = "jdbc:mysql://sdweb.ece.iastate.edu/may1639_db";
 //		String dbUrl = "jdbc:mysql://may1639.sd.ece.iastate.edu:622/may1639_db";
 //		String user = "may1639";
 //		String pass = "9nbje09p";
-		String dbUrl = "jdbc:mysql://localhost/source";
+		String dbUrl = "jdbc:mysql://localhost:3306/source";
 		String user = "root";
 		String pass = "root";
 		
@@ -64,7 +72,7 @@ public class DatabaseManager
 	}
 	
 	/**
-	 * Creates and populates the Types table
+	 * [DEPRECIATED] Creates and populates the Types table.
 	 * @throws SQLException
 	 */
 	public void createMethodsTable() throws SQLException
@@ -147,7 +155,7 @@ public class DatabaseManager
 	}
 	
 	/**
-	 * Creates and populates the Types table
+	 * [DEPRECIATED] Creates and populates the Types table.
 	 * @throws SQLException
 	 */
 	public void createTypesTable() throws SQLException
@@ -219,6 +227,11 @@ public class DatabaseManager
 		System.out.println("***** Table \"types\" Populated *****\n");
 	}
 	
+	/**
+	 * Returns a comma delimited String of the concatenated contents of a list
+	 * @param list T
+	 * @return
+	 */
 	public <T> String listToString(List<T> list)
 	{
 		StringBuilder sb = new StringBuilder();
@@ -235,5 +248,189 @@ public class DatabaseManager
 			}
 		}
 		return sb.toString();
+	}
+	
+	/**
+	 * adds information stored in "data" to the database
+	 * @throws SQLException 
+	 */
+	public void addData() throws SQLException
+	{
+		int libID = 0;
+		int pakID = 0;
+		int typeID = 0;
+		int methID = 0;
+		
+		// Insert an entry into the table
+		PreparedStatement insertLib = conn.prepareStatement ("insert into Library (ID, Name)" +
+														     "VALUES (?, ?)"
+														 	);
+		PreparedStatement insertPak = conn.prepareStatement ("insert into Package (ID, Name, LID)" +
+															 "VALUES (?, ?, ?)"
+															);
+		PreparedStatement insertType = conn.prepareStatement ("insert into Type (ID, Name, PID, Source)" +
+				  											  "VALUES (?, ?, ?, ?)"
+															 );
+		PreparedStatement insertMeth = conn.prepareStatement ("insert into Method (ID, Name, TID, Source)" +
+														  	  "VALUES (?, ?, ?, ?)"
+															 );
+		
+		for(String lib: data.keySet())
+		{
+			
+			insertLib.setInt(1, libID);
+			insertLib.setString(2, lib);
+			insertLib.executeUpdate();
+			//insert.clearBatch();
+			for(String pak: data.get(lib).keySet())
+			{
+				insertPak.setInt(1, pakID);
+				insertPak.setString(2, pak);
+				insertPak.setInt(3, libID);
+				insertPak.executeUpdate();
+				for(SourceParser parser: data.get(lib).get(pak))
+				{
+					for(ParsedType type: parser.getParsedTypes())
+					{
+						insertType.setInt(1, typeID);
+						insertType.setString(2, type.getName());
+						insertType.setInt(3, pakID);
+						insertType.setString(4, type.getSource());
+						insertType.executeUpdate();
+						//insert.clearBatch();
+						for(ParsedMethod meth: parser.getParsedMethods())
+						{
+							if (meth.getDeclaringClass().equals(type.getName()))
+							{
+								insertMeth.setInt(1, methID);
+								insertMeth.setString(2, meth.getName());
+								insertMeth.setInt(3, typeID);
+								insertMeth.setString(4, type.getSource());
+								insertMeth.executeUpdate();
+								//insert.clearBatch();
+								methID++;
+							}
+						}
+						typeID++;
+					}
+				}
+				pakID++;
+			}
+			libID++;
+		}
+		int rows = libID + pakID + typeID + methID;
+		System.out.println("***** Finished Adding Data *****");
+		System.out.println("***** " + rows + " rows affected *****");
+	}
+	
+	/**
+	 * Creates tables in database
+	 * @throws SQLException 
+	 */
+	public void buildDatabase() throws SQLException
+	{
+		if(conn == null)
+		{
+			System.err.println("Error: Not connected to a database.");
+			return;
+		}
+		
+		// Drop tables
+		Statement drop = conn.createStatement();
+		drop.executeUpdate("drop table Method");
+		drop.executeUpdate("drop table Type");
+		drop.executeUpdate("drop table Package");
+		drop.executeUpdate("drop table Library");
+		// not implemented
+//		drop.executeUpdate("drop table Annotation");
+//		drop.executeUpdate("drop table Modifier");
+//		drop.executeUpdate("drop table TypeParams");
+		drop.close();
+		
+		// Library Table
+		
+		// Create Table
+		Statement create = conn.createStatement();
+		create.executeUpdate("create table Library (" 	+
+							 "ID int not null,"			+	//1
+							 "Name text,"				+	//2
+							 "primary key (ID) )" 
+							);
+		System.out.println("***** Created Table \"Library\" *****");
+		
+		// Package Table
+		
+		// Create Table
+		create.executeUpdate("create table Package (" 	+
+							 "ID int not null," 		+	//1
+							 "Name text,"				+	//2
+							 "LID int not null," 		+	//3
+							 "primary key (ID), "		+
+							 "foreign key (LID) references Library(ID) )" 
+							);
+		System.out.println("***** Created Table \"Package\" *****");
+		
+		
+		// Type Table
+		
+		// Create Table
+		create.executeUpdate("create table Type (" 		+
+							 "ID int not null," 		+		//1
+							 "Name text,"				+		//2
+							 "PID int not null," 		+		//3
+							 "Source longtext,"			+		//4
+							 "primary key (ID), "		+
+							 "foreign key (PID) references Package(ID) )" 
+							);
+		System.out.println("***** Created Table \"Type\" *****");
+		
+		
+		
+		// Method Table
+
+		// Create Table
+		create.executeUpdate("create table Method ("+
+							 "ID int not null,"		+			//1
+							 "Name text,"			+			//2
+							 "TID int not null,"	+			//3
+							 "Source longtext,"		+			//4
+							 "primary key (ID), "	+
+							 "foreign key (TID) references Type(ID) )" 
+							);
+		System.out.println("***** Created Table \"Method\" *****");
+		
+		
+//		// Annotation Table
+//
+//		// Create Table
+//		create.executeUpdate("create table Annotation (" +
+//							 "ID int not null," +			//1
+//							 "Name text,"		+			//2
+//							 "primary key (ID) )" 
+//							);
+//		System.out.println("***** Created Table \"Annotation\" *****");
+//		
+//		// Modifier Table
+//
+//		// Create Table
+//		create.executeUpdate("create table Modifier (" +
+//							 "ID int not null," +			//1
+//							 "Name text,"		+			//2
+//							 "primary key (ID) )" 
+//							);
+//		System.out.println("***** Created Table \"Modifier\" *****");
+//		
+//		// TypeParams Table
+//
+//		// Create Table
+//		create.executeUpdate("create table TypeParams (" +
+//							 "ID int not null," +			//1
+//							 "Name text,"		+			//2
+//							 "primary key (ID) )" 
+//							);
+//		System.out.println("***** Created Table \"TypeParams\" *****");
+		
+		
+		create.close();
 	}
 }

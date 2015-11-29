@@ -88,9 +88,7 @@ public class FileWalker {
 			list.add(sp);
 			pak.put(fpackage, list);
 			libraries.put(library, pak);
-			
-			
-			
+
 			
 //			System.out.println("Library: " + library);
 //			System.out.println("Package: " + fpackage);
