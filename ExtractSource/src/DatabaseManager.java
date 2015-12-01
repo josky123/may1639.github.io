@@ -15,6 +15,7 @@ public class DatabaseManager
 	private List<ParsedMethod> methods;
 	private List<ParsedType> types;
 	private Connection conn;
+	private int batchMax = 1000;
 	
 	public DatabaseManager(List<ParsedMethod> m, List<ParsedType> t)
 	{
@@ -50,11 +51,12 @@ public class DatabaseManager
 //		String dbUrl = "jdbc:mysql://may1639.sd.ece.iastate.edu:622/may1639_db";
 //		String user = "may1639";
 //		String pass = "9nbje09p";
-		String dbUrl = "jdbc:mysql://localhost:3306/source";
+		String dbUrl = "jdbc:mysql://localhost:3306/source?rewriteBatchedStatements=true";
 		String user = "root";
 		String pass = "root";
 		
 		conn = DriverManager.getConnection(dbUrl, user, pass);
+		conn.setAutoCommit(false);
 		
 		System.out.println("***** Connected to database *****\n");
 	}
@@ -268,11 +270,11 @@ public class DatabaseManager
 		PreparedStatement insertPak = conn.prepareStatement ("insert into Package (ID, Name, LID)" +
 															 "VALUES (?, ?, ?)"
 															);
-		PreparedStatement insertType = conn.prepareStatement ("insert into Type (ID, Name, PID, Source)" +
-				  											  "VALUES (?, ?, ?, ?)"
+		PreparedStatement insertType = conn.prepareStatement ("insert into Type (ID, Name, PID, Source, IsInterface, IsInnerClass, Javadoc, Annotations, Modifiers, TypeParams, TypeParamBindings, SuperClass, Interfaces, DeclaringClass)" +
+				  											  "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
 															 );
-		PreparedStatement insertMeth = conn.prepareStatement ("insert into Method (ID, Name, TID, Source)" +
-														  	  "VALUES (?, ?, ?, ?)"
+		PreparedStatement insertMeth = conn.prepareStatement ("insert into Method (ID, Name, TID, Source, Constructor, Javadoc, Annotations, Modifiers, TypeParams, TypeParamBindings, ReturnType, Arguments, NumArguments, ArgumentTypes, ThrownExceptions, Body, DeclaringClass)" +
+														  	  "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
 															 );
 		
 		for(String lib: data.keySet())
@@ -280,14 +282,25 @@ public class DatabaseManager
 			
 			insertLib.setInt(1, libID);
 			insertLib.setString(2, lib);
-			insertLib.executeUpdate();
-			//insert.clearBatch();
+			//insertLib.executeUpdate();
+			insertLib.addBatch();
+//			if (libID % batchMax == 0)
+//			{
+//				insertLib.executeBatch();
+//				insertLib.clearBatch();
+//			}
 			for(String pak: data.get(lib).keySet())
 			{
 				insertPak.setInt(1, pakID);
 				insertPak.setString(2, pak);
 				insertPak.setInt(3, libID);
-				insertPak.executeUpdate();
+				//insertPak.executeUpdate();
+				insertPak.addBatch();
+//				if (pakID % batchMax == 0)
+//				{
+//					insertPak.executeBatch();
+//					insertPak.clearBatch();
+//				}					
 				for(SourceParser parser: data.get(lib).get(pak))
 				{
 					for(ParsedType type: parser.getParsedTypes())
@@ -296,8 +309,23 @@ public class DatabaseManager
 						insertType.setString(2, type.getName());
 						insertType.setInt(3, pakID);
 						insertType.setString(4, type.getSource());
-						insertType.executeUpdate();
-						//insert.clearBatch();
+						insertType.setBoolean(5, type.isInterface());
+						insertType.setBoolean(6, type.isInnerClass());
+						insertType.setString(7, type.getJavadoc());
+						insertType.setString(8, listToString(type.getAnnotations()));
+						insertType.setString(9, listToString(type.getModifiers()));
+						insertType.setString(10, listToString(type.getTypeParameters()));
+						insertType.setString(11, listToString(type.getTypeParameterBindings()));
+						insertType.setString(12, type.getSuperClass());
+						insertType.setString(13, listToString(type.getInterfaces()));
+						insertType.setString(14, type.getDeclaringClass());
+						//insertType.executeUpdate();
+						insertType.addBatch();
+//						if (typeID % batchMax == 0)
+//						{
+//							insertType.executeBatch();
+//							insertType.clearBatch();
+//						}
 						for(ParsedMethod meth: parser.getParsedMethods())
 						{
 							if (meth.getDeclaringClass().equals(type.getName()))
@@ -306,8 +334,33 @@ public class DatabaseManager
 								insertMeth.setString(2, meth.getName());
 								insertMeth.setInt(3, typeID);
 								insertMeth.setString(4, type.getSource());
-								insertMeth.executeUpdate();
-								//insert.clearBatch();
+								insertMeth.setBoolean(5, meth.isConstructor());
+								insertMeth.setString(6, meth.getJavadoc());
+								insertMeth.setString(7, listToString(meth.getAnnotations()));
+								insertMeth.setString(8, listToString(meth.getModifiers()));
+								insertMeth.setString(9, listToString(meth.getTypeParameters()));
+								insertMeth.setString(10, listToString(meth.getTypeParameterBindings()));
+								insertMeth.setString(11, meth.getReturnType());
+								insertMeth.setString(12, listToString(meth.getArguments()));
+								insertMeth.setInt(13, meth.getNumArguments());
+								insertMeth.setString(14, listToString(meth.getArgumentTypes()));
+								insertMeth.setString(15, listToString(meth.getThrownExceptions()));
+								insertMeth.setString(16, meth.getBody());
+								insertMeth.setString(17, meth.getDeclaringClass());								
+								//insertMeth.executeUpdate();
+								insertMeth.addBatch();
+								if (methID % batchMax == 0)
+								{
+									insertLib.executeBatch();
+									insertPak.executeBatch();
+									insertType.executeBatch();
+									insertMeth.executeBatch();
+									
+									insertLib.clearBatch();
+									insertPak.clearBatch();
+									insertType.clearBatch();
+									insertMeth.clearBatch();
+								}
 								methID++;
 							}
 						}
@@ -318,6 +371,12 @@ public class DatabaseManager
 			}
 			libID++;
 		}
+		insertLib.executeBatch();
+		insertPak.executeBatch();
+		insertType.executeBatch();
+		insertMeth.executeBatch();
+		conn.commit();
+		
 		int rows = libID + pakID + typeID + methID;
 		System.out.println("***** Finished Adding Data *****");
 		System.out.println("***** " + rows + " rows affected *****");
@@ -379,9 +438,20 @@ public class DatabaseManager
 							 "Name text,"				+		//2
 							 "PID int not null," 		+		//3
 							 "Source longtext,"			+		//4
+							 "IsInterface boolean," 	+		//5
+							 "IsInnerClass boolean," 	+		//6
+							 "Javadoc longtext," 		+		//7
+							 "Annotations text," 		+		//8
+							 "Modifiers text," 			+		//9
+							 "TypeParams text," 		+		//10
+							 "TypeParamBindings text," 	+		//11
+							 "SuperClass text," 		+		//12
+							 "Interfaces text," 		+		//13
+							 "DeclaringClass text," 	+		//14
 							 "primary key (ID), "		+
-							 "foreign key (PID) references Package(ID) )" 
+							 "foreign key (PID) references Package(ID) )"
 							);
+		
 		System.out.println("***** Created Table \"Type\" *****");
 		
 		
@@ -390,13 +460,27 @@ public class DatabaseManager
 
 		// Create Table
 		create.executeUpdate("create table Method ("+
-							 "ID int not null,"		+			//1
-							 "Name text,"			+			//2
-							 "TID int not null,"	+			//3
-							 "Source longtext,"		+			//4
-							 "primary key (ID), "	+
+							 "ID int not null,"			+	//1
+							 "Name text,"				+	//2
+							 "TID int not null,"		+	//3
+							 "Source longtext,"			+	//4
+							 "Constructor boolean," 	+	//5
+							 "Javadoc longtext," 		+	//6
+							 "Annotations text," 		+	//7
+							 "Modifiers text," 			+	//8
+							 "TypeParams text," 		+	//9
+							 "TypeParamBindings text," 	+	//10
+							 "ReturnType text," 		+	//11
+							 "Arguments text," 			+	//12
+							 "NumArguments int," 		+	//13
+							 "ArgumentTypes text," 		+	//14
+							 "ThrownExceptions text," 	+	//15
+							 "Body longtext," 			+	//16
+							 "DeclaringClass text," 	+	//17
+							 "primary key (ID), "		+
 							 "foreign key (TID) references Type(ID) )" 
-							);
+							);		
+		
 		System.out.println("***** Created Table \"Method\" *****");
 		
 		
