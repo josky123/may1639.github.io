@@ -372,9 +372,16 @@ Full-Width Styles
 
 #main_content {
   background-color: #f2f2f2;
-  /*padding-top: 30px;*/
   padding: 40px 20px;
-  min-height: 600px;
+ height: 600px;
+  border-left: 1px solid #666666;
+  border-right: 1px solid #666666;
+}
+
+#main_content_docs {
+  background-color: #f2f2f2;
+  padding: 40px 20px;
+ height: 1000px;
   border-left: 1px solid #666666;
   border-right: 1px solid #666666;
 }
@@ -433,11 +440,41 @@ Full-Width Styles
 	border: none;
 }
 
-#reports th{
-	border-radius:25px 25px 0px 0px;
+#report_header{
+	font-weight:bold;
+	font-size:22px;
+	background-color: #212121;
 }
 
-#report_header{
+#documentation{
+	width: 900px;
+	margin: 0px auto;
+	padding: 40px 0px;
+}
+
+#documentation table{
+	border-radius: 25px;
+	text-align: center;
+}
+
+#project_plans{
+	float: left;
+}
+
+#design_docs{
+	float: right;
+}
+
+.doc_table{
+	width: 45%;
+}
+
+.doc_table td{
+	border: none;
+}
+
+.custom_th{
+	border-radius:25px 25px 0px 0px;
 	font-weight:bold;
 	font-size:22px;
 	background-color: #212121;
