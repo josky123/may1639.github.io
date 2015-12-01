@@ -40,7 +40,7 @@ ol, ul {
 }
 
 table {
-  border-collapse: collapse;
+  /*border-collapse: collapse;*/
   border-spacing: 0;
 }
 
@@ -266,7 +266,7 @@ Full-Width Styles
 
 .inner {
   position: relative;
-  max-width: 1000px;
+  max-width: 1200px;
   padding: 10px 5px;
   margin: 0 auto;
 }
@@ -304,6 +304,7 @@ Full-Width Styles
 
 #header_wrap .inner {
   padding: 25px 5px 15px 5px;
+  max-height: 150px;
 }
 
 #project_title {
@@ -372,8 +373,8 @@ Full-Width Styles
 #main_content {
   background-color: #f2f2f2;
   /*padding-top: 30px;*/
-  padding: 15px 20px;
-  height: 600px;
+  padding: 40px 20px;
+  min-height: 600px;
   border-left: 1px solid #666666;
   border-right: 1px solid #666666;
 }
@@ -386,7 +387,7 @@ Full-Width Styles
 
 #menu_div {
   position: relative;
-  max-width: 1080px;
+  max-width: 1280px;
   padding: 0px;
   margin: 0 auto;
 }
@@ -418,9 +419,42 @@ Full-Width Styles
 
 #footer_wrap {
   background: #212121;
+  min-height: 95px;
 }
 
+#reports{
+	margin: 0px auto;
+	width: 1000px;
+	text-align: center;
+	border-radius: 25px;
+}
 
+#reports td{
+	border: none;
+}
+
+#reports th{
+	border-radius:25px 25px 0px 0px;
+}
+
+#report_header{
+	font-weight:bold;
+	font-size:22px;
+	background-color: #212121;
+}
+
+.report_class{
+	font-weight: bold;
+	font-size: 18px;
+}
+
+.report_colhead1{
+	width: 150px;
+}
+
+.report_colhead2{
+	width: 300px;
+}
 
 /*******************************************************************************
 Small Device Styles
