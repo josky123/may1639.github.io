@@ -9,13 +9,18 @@ public class DatabaseManager
 {
 	// data to add to the database
 	private HashMap<String, HashMap<String, ArrayList<SourceParser>>> data;
-	// int to create unique id for entries.  Increment after use.
+	
 	
 	private static boolean debug = true;
 	private List<ParsedMethod> methods;
 	private List<ParsedType> types;
 	private Connection conn;
-	private int batchMax = 1000;
+	private int batchMax = 5000;
+	
+	private boolean libNeedsUpdate = false;
+	private boolean pakNeedsUpdate = false;
+	private boolean typeNeedsUpdate = false;
+	private boolean methNeedsUpdate = false;
 	
 	public DatabaseManager(List<ParsedMethod> m, List<ParsedType> t)
 	{
@@ -282,25 +287,15 @@ public class DatabaseManager
 			
 			insertLib.setInt(1, libID);
 			insertLib.setString(2, lib);
-			//insertLib.executeUpdate();
 			insertLib.addBatch();
-//			if (libID % batchMax == 0)
-//			{
-//				insertLib.executeBatch();
-//				insertLib.clearBatch();
-//			}
+			libNeedsUpdate = true;
 			for(String pak: data.get(lib).keySet())
 			{
 				insertPak.setInt(1, pakID);
 				insertPak.setString(2, pak);
 				insertPak.setInt(3, libID);
-				//insertPak.executeUpdate();
 				insertPak.addBatch();
-//				if (pakID % batchMax == 0)
-//				{
-//					insertPak.executeBatch();
-//					insertPak.clearBatch();
-//				}					
+				pakNeedsUpdate = true;
 				for(SourceParser parser: data.get(lib).get(pak))
 				{
 					for(ParsedType type: parser.getParsedTypes())
@@ -319,13 +314,8 @@ public class DatabaseManager
 						insertType.setString(12, type.getSuperClass());
 						insertType.setString(13, listToString(type.getInterfaces()));
 						insertType.setString(14, type.getDeclaringClass());
-						//insertType.executeUpdate();
 						insertType.addBatch();
-//						if (typeID % batchMax == 0)
-//						{
-//							insertType.executeBatch();
-//							insertType.clearBatch();
-//						}
+						typeNeedsUpdate = true;
 						for(ParsedMethod meth: parser.getParsedMethods())
 						{
 							if (meth.getDeclaringClass().equals(type.getName()))
@@ -347,19 +337,38 @@ public class DatabaseManager
 								insertMeth.setString(15, listToString(meth.getThrownExceptions()));
 								insertMeth.setString(16, meth.getBody());
 								insertMeth.setString(17, meth.getDeclaringClass());								
-								//insertMeth.executeUpdate();
 								insertMeth.addBatch();
+								methNeedsUpdate = true;
 								if (methID % batchMax == 0)
 								{
-									insertLib.executeBatch();
-									insertPak.executeBatch();
-									insertType.executeBatch();
-									insertMeth.executeBatch();
+									if (libNeedsUpdate)
+									{
+										insertLib.executeBatch();
+										insertLib.clearBatch();
+										libNeedsUpdate = false;
+									}
 									
-									insertLib.clearBatch();
-									insertPak.clearBatch();
-									insertType.clearBatch();
-									insertMeth.clearBatch();
+									if (pakNeedsUpdate)
+									{
+										insertPak.executeBatch();
+										insertPak.clearBatch();
+										pakNeedsUpdate = false;
+									}
+									
+									if (typeNeedsUpdate)
+									{
+										insertType.executeBatch();
+										insertType.clearBatch();
+										typeNeedsUpdate = false;
+									}
+									
+									if (methNeedsUpdate)
+									{
+										insertMeth.executeBatch();
+										insertMeth.clearBatch();
+										methNeedsUpdate = false;
+									}
+
 								}
 								methID++;
 							}
@@ -375,6 +384,12 @@ public class DatabaseManager
 		insertPak.executeBatch();
 		insertType.executeBatch();
 		insertMeth.executeBatch();
+		
+		insertLib.close();
+		insertPak.close();
+		insertType.close();
+		insertMeth.close();
+		
 		conn.commit();
 		
 		int rows = libID + pakID + typeID + methID;
@@ -395,16 +410,18 @@ public class DatabaseManager
 		}
 		
 		// Drop tables
-		Statement drop = conn.createStatement();
-		drop.executeUpdate("drop table Method");
-		drop.executeUpdate("drop table Type");
-		drop.executeUpdate("drop table Package");
-		drop.executeUpdate("drop table Library");
-		// not implemented
-//		drop.executeUpdate("drop table Annotation");
-//		drop.executeUpdate("drop table Modifier");
-//		drop.executeUpdate("drop table TypeParams");
-		drop.close();
+//		Statement drop = conn.createStatement();
+//		drop.executeUpdate("drop table Method");
+//		drop.executeUpdate("drop table Type");
+//		drop.executeUpdate("drop table Package");
+//		drop.executeUpdate("drop table Library");
+//		// not implemented
+////		drop.executeUpdate("drop table Annotation");
+////		drop.executeUpdate("drop table Modifier");
+////		drop.executeUpdate("drop table TypeParams");
+//		drop.close();
+		
+		dropTables();
 		
 		// Library Table
 		
@@ -516,5 +533,50 @@ public class DatabaseManager
 		
 		
 		create.close();
+	}
+	
+	private void dropTables() throws SQLException
+	{
+		Statement drop = conn.createStatement();
+		
+		String getMeth = "show tables like 'Method'";
+		String getType = "show tables like 'Type'";
+		String getPak = "show tables like 'Package'";
+		String getLib = "show tables like 'Library'";
+
+		// Drop method table
+		Statement s = conn.createStatement();
+		ResultSet rs = s.executeQuery(getMeth);
+		while(rs.next()) {
+			drop.executeUpdate("drop table Method");
+		}
+		
+		// Drop type table
+		rs = s.executeQuery(getType);
+		while(rs.next()) {
+			drop.executeUpdate("drop table Type");
+		}
+
+		// Drop type table
+		rs = s.executeQuery(getPak);
+		while(rs.next()) {
+			drop.executeUpdate("drop table Package");
+		}
+		
+		// Drop type table
+		rs = s.executeQuery(getLib);
+		while(rs.next()) {
+			drop.executeUpdate("drop table Library");
+		}
+
+		// not implemented
+//		drop.executeUpdate("drop table Annotation");
+//		drop.executeUpdate("drop table Modifier");
+//		drop.executeUpdate("drop table TypeParams");
+		
+		s.close();
+		rs.close();
+		drop.close();
+		conn.commit();
 	}
 }
