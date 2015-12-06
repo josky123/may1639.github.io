@@ -52,13 +52,12 @@ public class DatabaseManager
 		
 		// Connect to the database		
 		
-//		//String dbUrl = "jdbc:mysql://sdweb.ece.iastate.edu/may1639_db";
-//		String dbUrl = "jdbc:mysql://may1639.sd.ece.iastate.edu:622/may1639_db";
-//		String user = "may1639";
-//		String pass = "9nbje09p";
-		String dbUrl = "jdbc:mysql://localhost:3306/source?rewriteBatchedStatements=true";
-		String user = "root";
-		String pass = "root";
+		String dbUrl = "jdbc:mysql://localhost/may1639_db?rewriteBatchedStatements=true";
+		String user = "may1639";
+		String pass = "9nbje09p";
+//		String dbUrl = "jdbc:mysql://localhost:3306/source?rewriteBatchedStatements=true";
+//		String user = "root";
+//		String pass = "root";
 		
 		conn = DriverManager.getConnection(dbUrl, user, pass);
 		conn.setAutoCommit(false);
