@@ -121,7 +121,7 @@ a {
 a:hover, a:focus {text-decoration: underline;}
 
 footer a {
-  color: #F2F2F2;
+  color: #FFFFFF;
   text-decoration: underline;
 }
 
@@ -381,7 +381,7 @@ Full-Width Styles
 #main_content_docs {
   background-color: #f2f2f2;
   padding: 40px 20px;
- height: 1000px;
+  height: 1000px;
   border-left: 1px solid #666666;
   border-right: 1px solid #666666;
 }
@@ -441,13 +441,14 @@ Full-Width Styles
 }
 
 #report_header{
+    border-radius: 25px 25px 0px 0px;
 	font-weight:bold;
 	font-size:22px;
 	background-color: #212121;
 }
 
 #documentation{
-	width: 900px;
+	width: 1000px;
 	margin: 0px auto;
 	padding: 40px 0px;
 }
@@ -455,18 +456,19 @@ Full-Width Styles
 #documentation table{
 	border-radius: 25px;
 	text-align: center;
+	width: 100%;
 }
 
-#project_plans{
-	float: left;
+#proj_header{
+	border-radius: 25px 0px 0px 0px;
 }
 
-#design_docs{
-	float: right;
+#pres_header{
+	border-radius: 0px 25px 0px 0px;
 }
 
 .doc_table{
-	width: 45%;
+	width: 48%;
 }
 
 .doc_table td{
@@ -474,7 +476,6 @@ Full-Width Styles
 }
 
 .custom_th{
-	border-radius:25px 25px 0px 0px;
 	font-weight:bold;
 	font-size:22px;
 	background-color: #212121;
