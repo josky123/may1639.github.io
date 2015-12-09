@@ -52,12 +52,12 @@ public class DatabaseManager
 		
 		// Connect to the database		
 		
-		String dbUrl = "jdbc:mysql://localhost/may1639_db?rewriteBatchedStatements=true";
-		String user = "may1639";
-		String pass = "9nbje09p";
-//		String dbUrl = "jdbc:mysql://localhost:3306/source?rewriteBatchedStatements=true";
-//		String user = "root";
-//		String pass = "root";
+//		String dbUrl = "jdbc:mysql://localhost/may1639_db?rewriteBatchedStatements=true";
+//		String user = "may1639";
+//		String pass = "9nbje09p";
+		String dbUrl = "jdbc:mysql://localhost:3306/source?rewriteBatchedStatements=true";
+		String user = "root";
+		String pass = "root";
 		
 		conn = DriverManager.getConnection(dbUrl, user, pass);
 		conn.setAutoCommit(false);
@@ -322,7 +322,7 @@ public class DatabaseManager
 								insertMeth.setInt(1, methID);
 								insertMeth.setString(2, meth.getName());
 								insertMeth.setInt(3, typeID);
-								insertMeth.setString(4, type.getSource());
+								insertMeth.setString(4, meth.getSource());
 								insertMeth.setBoolean(5, meth.isConstructor());
 								insertMeth.setString(6, meth.getJavadoc());
 								insertMeth.setString(7, listToString(meth.getAnnotations()));
