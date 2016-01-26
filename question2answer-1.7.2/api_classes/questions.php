@@ -11,10 +11,13 @@ header('Content-Type: application/json');//JSON-formatting
 class Question
 {
 	/** /
+
 	var $accepted_answer_id;
 	var $answer_count;
 	var $answers;
+	/**/
 	var $body;
+	/** /
 	var $body_markdown;
 	var $bounty_amount;
 	var $bounty_closes_date;
@@ -37,8 +40,8 @@ class Question
 	var $favorite_count;
 	var $favorited;
 	var $is_answered;
-	/**/
 	var $last_activity_date;
+	/**/
 	var $last_edit_date;
 	var $last_editor;
 	/** /
@@ -69,13 +72,14 @@ class Question
 
 	function __construct($row)
 	{
-		$this->creation_date = $row['dateline'];
-		$this->last_activity_date = $row['lastpost'];
-		$this->last_edit_date = $row['lastpost'];
-		$this->last_editor = $row['lastposteruid'];
-		$this->owner = $row['uid'];
-		$this->question_id = $row['tid'];
-		$this->title = $row['subject'];
+		$this->body = $row['content'];
+		$this->creation_date = $row['created'];
+		//$this->last_activity_date = $row['lastpost'];
+		$this->last_edit_date = $row['updated'];
+		$this->last_editor = $row['lastuserid'];
+		$this->owner = $row['userid'];
+		$this->question_id = $row['postid'];
+		$this->title = $row['title'];
 		$this->view_count = $row['views'];
 	}
 
@@ -83,20 +87,20 @@ class Question
 	{
 		global $ID_TYPES;
 
-		if(!in_array($ID_TYPES[$id_type], array("uid", "tid")))
+		if(!in_array($ID_TYPES[$id_type], array("postid, userid")))
 			$id_type = 'question';
 		
 		$order = process_order();
-
-		$sort = "activity";
 		
 		$sort = process_sort(array("activity", "creation"));
 		
+		/** /
 		if(isset($_GET["fromdate"]))
 			$fromdate = process_date('fromdate');
 
 		if(isset($_GET["todate"]))
 			$todate = process_date('todate');
+		/**/
 
 		if(isset($_GET["min"]))
 			$min = process_min_max($sort, 'min');
@@ -105,17 +109,18 @@ class Question
 			$max = process_min_max($sort, 'max');
 
 
-		$var_to_col_mapping = array("ids" => $ID_TYPES[$id_type], "activity" => "lastpost", "creation" => "dateline");
+		$var_to_col_mapping = array("ids" => $ID_TYPES[$id_type], "activity" => "updated", "creation" => "created");
 
 
 
-		$query = "SELECT * FROM `mybb_threads` ";
+		$query = "SELECT * FROM `qa_posts` ";
 		
-		if(isset($fromdate) || isset($todate) || isset($min) || isset($max) || isset($ids))
+		if(true || isset($fromdate) || isset($todate) || isset($min) || isset($max) || isset($ids))
 		{
-			$use_and = false;
-			$query .= " WHERE";
+			$use_and = true;
+			$query .= " WHERE type = 'Q'";
 			
+			/** /
 			if(isset($fromdate))
 			{
 				$query .= " ".$var_to_col_mapping["creation"]." > ".$fromdate;
@@ -129,6 +134,7 @@ class Question
 				$query .= " ".$var_to_col_mapping["creation"]." < ".$todate;
 				$use_and = true;
 			}
+			/**/
 
 			if(isset($min))
 			{

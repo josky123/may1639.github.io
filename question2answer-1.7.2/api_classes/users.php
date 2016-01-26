@@ -54,32 +54,34 @@ class User
 
 	function __construct($row)
 	{
-		$this->account_id = $row['uid'];
-		$this->creation_time = $row['regdate'];
-		$this->display_name = $row['username'];
-		$this->last_access_date = $row['lastvisit'];
-		$this->last_modified_date = $row['lastactive'];
-		$this->reputation = $row['reputation'];
-		$this->user_id = $row['uid'];
-		$this->website_url = $row['website'];
+		$this->account_id = $row['userid'];
+		$this->creation_time = $row['created'];
+		$this->display_name = $row['handle'];
+		$this->last_access_date = $row['loggedin'];
+		$this->last_modified_date = $row['written'];
+		$this->reputation = $row['level'];
+		$this->user_id = $row['userid'];
+		// $this->website_url = $row['website'];
 	}
 
 	static function get_query($ids, $id_type='user')
 	{
 		global $ID_TYPES;
 		
-		if(!in_array($ID_TYPES[$id_type], array("uid")))
+		if(!in_array($ID_TYPES[$id_type], array("userid")))
 			$id_type = 'user';
 
 		$order = process_order();
 	
 		$sort = process_sort(array("reputation", "creation", "name", "modified"));
-	
+
+		/** /
 		if(isset($_GET["fromdate"]))
 			$fromdate = process_date('fromdate');
 
 		if(isset($_GET["todate"]))
 			$todate = process_date('todate');
+		/**/
 
 		if(isset($_GET["min"]))
 			$min = process_min_max($sort, 'min');
@@ -90,14 +92,16 @@ class User
 		if(isset($_GET["inname"]))
 			$inname = process_inname();
 
-		$var_to_col_mapping = array("ids" => $ID_TYPES[$id_type], "reputation" => "reputation", "creation" => "regdate", "name" => "username", "modified" => "lastactive");
+		$var_to_col_mapping = array("ids" => $ID_TYPES[$id_type], "reputation" => "score", "creation" => "created", "name" => "handle", "modified" => "written");
 	
-		$query = "SELECT * FROM `mybb_users`";
+		$query = "SELECT * FROM `qa_users` ";
 		
 		if(isset($fromdate) || isset($todate) || isset($min) || isset($max) || isset($inname) || isset($ids))
 		{
 			$use_and = false;
 			$query .= " WHERE";
+			
+			/** /
 			
 			if(isset($fromdate))
 			{
@@ -113,10 +117,12 @@ class User
 				$use_and = true;
 			}
 
+			/**/
+			
 			if(isset($min))
 			{
-				if($use_and)
-					$query .= " AND";
+				/*if($use_and)
+					$query .= " AND";*/
 				$query .= " ".$var_to_col_mapping[$sort]." > ";
 				if($sort == "name")
 					$query .= "'".$min."'";

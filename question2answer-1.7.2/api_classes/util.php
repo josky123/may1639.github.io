@@ -3,7 +3,7 @@ define("IN_MYBB", 1);
 header("access-control-allow-origin: *");
 header('Content-Type: application/json');//JSON-formatting
 
-$ID_TYPES = array('user' => 'uid', 'answer' => 'pid', 'question' => 'tid');
+$ID_TYPES = array('user' => 'userid', 'answer' => 'postid', 'question' => 'postid');
 
 function paginate_query($query, $n)
 {
@@ -45,7 +45,6 @@ function paginate_query($query, $n)
 
 function return_error($id, $message, $name)
 {
-	return;
 	$return_value = array('error_id' => $id, 'error_message' => $message, 'error_name' => $name);
 	ob_start('ob_gzhandler');
 	exit(json_encode($return_value));
@@ -57,7 +56,6 @@ function process_order()
 {
 	if(isset($_GET["order"]))
 	{
-
 		if(!in_array($_GET["order"], array("asc", "desc")))
 			return_error(400, 'order', 'bad_parameter');
 		return $_GET["order"];
