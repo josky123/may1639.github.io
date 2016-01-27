@@ -1,0 +1,113 @@
+<div id="content">
+    <div id="navigation" >
+        <a onclick="initialize()" href="#">Home</a> 
+    </div>
+
+    <hr>
+    <br>
+
+    <div id="pages" >
+        <h1>Libraries</h1>
+        <a onclick="test()" href="#">Click Me</a>
+    </div>
+
+    <br>
+    <hr>
+    <br>
+
+    <div id="source">
+        <h1>Source Code</h1>
+        <table id="sourceBox" border="1" style="width:100%" overflow: scroll>
+            <tr><td>Source Code</td></tr>
+        </table>
+    </div>
+</div>
+
+<script type="text/javascript">
+    initialize();
+    function test()
+    {
+        $.post("test.php",
+            {
+                name: "Donald Duck",
+                city: "Duckburg"
+            },
+            function(data, status, xhr){
+                alert("Data: " + data[0].Name + "\nStatus: " + status);
+            }, 
+            "json"
+        );
+    }
+
+    function nav(name, id, type)
+    {
+        alert(name + ", " + id + ", " + type);
+
+
+        var navigation = document.getElementById("navigation");
+        var child;
+        var numchild = navigation.childNodes.length;
+        var found = false;
+        for (var x = 0; x < numchild; x++)
+        {
+            child = navigation.childNodes[x];
+            if (found) {
+                navigation.removeChild(navigation.childNodes[x]);
+            }
+            if (child.firstChild.nodeValue == name) {
+                found = true;
+            }
+        }
+        if (!found) {
+            var a = document.createElement("a");
+            a.href = "#";
+            a.setAttribute("onclick", "nav(\"" + name + "\", " + id + ", " + "\"" + type + "\")" );
+            a.innerHTML = name;
+            navigation.appendChild(a);
+        }
+
+    }
+
+    function initialize()
+    {
+        // set navigation to home
+        var navigation = document.getElementById("navigation");
+        navigation.innerHTML = "<a onclick=\"initialize()\" href=\"#\">Home</a>";
+
+        // Set pages label to Libraries
+        var pages = document.getElementById("pages");
+        pages.innerHTML = "<h1>Libraries</h1>";
+
+        // get libraries from database
+        var libs;
+        var request = $.post("navigation.php", 
+            {
+                type: "home"
+            },
+            function(data, status, xhr){
+                libs = data;
+                //alert(libs[0].Name);
+            },
+            "json"
+        );
+        request.done(function() {
+            // add libraries to pages
+            for (var x = 0; x < libs.length; x++)
+            {
+                var a = document.createElement("a");
+                a.setAttribute("onclick", "nav(\"" + libs[x].Name + "\", " + libs[x].ID + ", " + "\"library\")" );
+                a.href = "#";
+                a.innerHTML = libs[x].Name;
+                pages.appendChild(a);
+                var br = document.createElement("br");
+                pages.appendChild(br);
+            }
+        });
+
+        
+
+        // hide source cod div
+        var source = document.getElementById("source");
+        source.style.display = 'none';
+    }
+</script>
