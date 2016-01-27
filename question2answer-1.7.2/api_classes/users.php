@@ -48,7 +48,6 @@ class User
 	/** /
 	var $user_type;
 	var $view_count;
-	/** /
 	var $website_url;
 	/**/
 
@@ -59,7 +58,7 @@ class User
 		$this->display_name = $row['handle'];
 		$this->last_access_date = $row['loggedin'];
 		$this->last_modified_date = $row['written'];
-		$this->reputation = $row['level'];
+		$this->reputation = $row['points'];
 		$this->user_id = $row['userid'];
 		// $this->website_url = $row['website'];
 	}
@@ -75,7 +74,7 @@ class User
 	
 		$sort = process_sort(array("reputation", "creation", "name", "modified"));
 
-		/** /
+		/**/
 		if(isset($_GET["fromdate"]))
 			$fromdate = process_date('fromdate');
 
@@ -84,28 +83,40 @@ class User
 		/**/
 
 		if(isset($_GET["min"]))
+		{
 			$min = process_min_max($sort, 'min');
+			if(in_array($sort, array("creation", "modified")))
+			{
+				$min = "FROM_UNIXTIME(".$min.")";
+			}
+		}
 
 		if(isset($_GET["max"]))
+		{
 			$max = process_min_max($sort, 'max');
+			if(in_array($sort, array("creation", "modified")))
+			{
+				$max = "FROM_UNIXTIME(".$max.")";
+			}
+		}
 
 		if(isset($_GET["inname"]))
 			$inname = process_inname();
 
-		$var_to_col_mapping = array("ids" => $ID_TYPES[$id_type], "reputation" => "score", "creation" => "created", "name" => "handle", "modified" => "written");
+		$var_to_col_mapping = array("ids" => $ID_TYPES[$id_type], "reputation" => "qa_userpoints.points", "creation" => "created", "name" => "handle", "modified" => "written");
 	
-		$query = "SELECT * FROM `qa_users` ";
+		$query = "SELECT qa_users.*, qa_userpoints.points FROM qa_users, qa_userpoints";
 		
+
+		$use_and = true;
+		$query .= " WHERE qa_users.userid = qa_userpoints.userid";
 		if(isset($fromdate) || isset($todate) || isset($min) || isset($max) || isset($inname) || isset($ids))
-		{
-			$use_and = false;
-			$query .= " WHERE";
-			
-			/** /
-			
+		{	
 			if(isset($fromdate))
 			{
-				$query .= " ".$var_to_col_mapping["creation"]." > ".$fromdate;
+				if($use_and)
+					$query .= " AND";
+				$query .= " qa_users.".$var_to_col_mapping["creation"]." > ".$fromdate;
 				$use_and = true;
 			}
 
@@ -113,17 +124,15 @@ class User
 			{
 				if($use_and)
 					$query .= " AND";
-				$query .= " ".$var_to_col_mapping["creation"]." < ".$todate;
+				$query .= " qa_users.".$var_to_col_mapping["creation"]." < ".$todate;
 				$use_and = true;
 			}
-
-			/**/
 			
 			if(isset($min))
 			{
-				/*if($use_and)
-					$query .= " AND";*/
-				$query .= " ".$var_to_col_mapping[$sort]." > ";
+				if($use_and)
+					$query .= " AND";
+				$query .= " qa_users.".$var_to_col_mapping[$sort]." > ";
 				if($sort == "name")
 					$query .= "'".$min."'";
 				else
@@ -135,7 +144,7 @@ class User
 			{
 				if($use_and)
 					$query .= " AND";
-				$query .= " ".$var_to_col_mapping[$sort]." < ";
+				$query .= " qa_users.".$var_to_col_mapping[$sort]." < ";
 				if($sort == "name")
 					$query .= "'".$max."'";
 				else
@@ -147,7 +156,7 @@ class User
 			{
 				if($use_and)
 					$query .= " AND";
-				$query .= " ".$var_to_col_mapping["name"]." LIKE '%".$inname."%'";
+				$query .= " qa_users.".$var_to_col_mapping["name"]." LIKE '%".$inname."%'";
 				$use_and = true;
 			}
 
@@ -155,7 +164,7 @@ class User
 			{
 				if($use_and)
 					$query .= " AND";
-				$query .= " ".$var_to_col_mapping["ids"]." IN (";
+				$query .= " qa_users.".$var_to_col_mapping["ids"]." IN (";
 				for ($index=0; $index < count($ids); $index++)
 				{
 					if(0 < $index)

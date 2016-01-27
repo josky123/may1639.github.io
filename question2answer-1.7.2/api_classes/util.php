@@ -80,9 +80,11 @@ function process_sort($mapping)
 
 function process_date($date)
 {
+	/** /
 	if((false === filter_input(INPUT_GET, $date, FILTER_VALIDATE_INT)) || $_GET[$date] < 0)
 		return_error(400, $date, 'bad_parameter');
-	return $_GET[$date];
+	/**/
+	return "FROM_UNIXTIME(".$_GET[$date].")";
 }
 
 /**/

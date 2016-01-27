@@ -66,6 +66,49 @@ function users($id_type='user')//what should happen if the path starts with 'use
 	return $retval;
 }
 
+function answers($id_type='answer')
+{
+	global $path, $db;
+
+	if (count($path) > 1)
+	{
+		switch($path[1])
+		{
+			// case 'moderators':
+				
+			// 	break;
+			
+			default:
+				$ids = $path[1];
+				process_ids($ids);
+				break;
+		}
+	}
+
+	// $results = $db->query("SELECT p.* FROM mybb_posts p, mybb_users u WHERE u.username=\"adcoats\" && p.uid = u.uid");
+	
+	if(isset($ids))
+	{
+		$ids = explode(";", $ids);
+	}
+
+	$query = Answer::get_query($ids, $id_type);
+	// echo "string";
+	// return $query;
+
+	$query = paginate_query($query, mysqli_num_rows(qa_db_query_raw($query)));
+
+	$results = qa_db_query_raw($query);
+	
+	$retval = array();
+
+	while($row = mysqli_fetch_array($results, MYSQL_ASSOC))
+	{		
+		array_push($retval, new Answer($row));
+	}
+
+	return $retval;
+}
 
 function questions($id_type='question')
 {
@@ -118,6 +161,10 @@ switch($path[0])//selects proper function to call.
 		$return_value = array("items" => users("user"));
 		break;
 	
+	case 'answers':
+		$return_value = array("items" => answers("answer"));
+		break;
+
 	case 'questions':
 		$return_value = array("items" => questions("questions"));
 		break;

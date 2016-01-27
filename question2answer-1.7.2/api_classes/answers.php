@@ -53,15 +53,15 @@ class Answer
 
 	function __construct($row)
 	{
-		$this->answer_id = $row['pid'];
-		$this->body = $row['message'];
-		$this->creation_date = $row['dateline'];
-		$this->last_activity_date = $row['edittime'];
-		$this->last_edit_date = $row['edittime'];
-		$this->last_editor = $row['edituid'];
-		$this->owner = $row['uid'];
-		$this->question_id = $row['tid'];
-		$this->title = $row['subject'];
+		$this->answer_id = $row['postid'];
+		$this->body = $row['content'];
+		$this->creation_date = $row['created'];
+		//$this->last_activity_date = $row['edittime'];
+		$this->last_edit_date = $row['updated'];
+		$this->last_editor = $row['lastuserid'];
+		$this->owner = $row['userid'];
+		$this->question_id = $row['postid'];
+		$this->title = $row['title'];
 	}
 
 	static function get_query($ids, $id_type='answer')
@@ -69,13 +69,11 @@ class Answer
 
 		global $ID_TYPES;
 
-		if(!in_array($ID_TYPES[$id_type], array("uid", "pid", "tid")))
+		if(!in_array($ID_TYPES[$id_type], array("userid", "postid")))
 			$id_type = 'answer';
 		
 
 		$order = process_order();
-
-		$sort = "activity";
 		
 		$sort = process_sort(array("activity", "creation"));
 		
@@ -86,23 +84,36 @@ class Answer
 			$todate = process_date('todate');
 
 		if(isset($_GET["min"]))
+		{
 			$min = process_min_max($sort, 'min');
+			if(in_array($sort, array("activity", "creation")))
+			{
+				$min = "FROM_UNIXTIME(".$min.")";
+			}
+		}
 
 		if(isset($_GET["max"]))
+		{
 			$max = process_min_max($sort, 'max');
+			if(in_array($sort, array("activity", "creation")))
+			{
+				$max = "FROM_UNIXTIME(".$max.")";
+			}
+		}
 
 
-		$var_to_col_mapping = array("ids" => $ID_TYPES[$id_type], "activity" => "edittime", "creation" => "dateline");
+		$var_to_col_mapping = array("ids" => $ID_TYPES[$id_type], "activity" => "updated", "creation" => "created");
 	
-		$query = "SELECT * FROM `mybb_posts`";
+		$query = "SELECT * FROM `qa_posts` ";
 		
+		$use_and = true;
+			$query .= " WHERE type = 'A'";
 		if(isset($fromdate) || isset($todate) || isset($min) || isset($max) || isset($ids))
 		{
-			$use_and = false;
-			$query .= " WHERE";
-			
 			if(isset($fromdate))
 			{
+				if($use_and)
+					$query .= " AND";
 				$query .= " ".$var_to_col_mapping["creation"]." > ".$fromdate;
 				$use_and = true;
 			}

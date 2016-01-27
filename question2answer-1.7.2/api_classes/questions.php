@@ -94,19 +94,29 @@ class Question
 		
 		$sort = process_sort(array("activity", "creation"));
 		
-		/** /
 		if(isset($_GET["fromdate"]))
 			$fromdate = process_date('fromdate');
 
 		if(isset($_GET["todate"]))
 			$todate = process_date('todate');
-		/**/
-
+		
 		if(isset($_GET["min"]))
+		{
 			$min = process_min_max($sort, 'min');
+			if(in_array($sort, array("activity", "creation")))
+			{
+				$min = "FROM_UNIXTIME(".$min.")";
+			}
+		}
 
 		if(isset($_GET["max"]))
+		{
 			$max = process_min_max($sort, 'max');
+			if(in_array($sort, array("activity", "creation")))
+			{
+				$max = "FROM_UNIXTIME(".$max.")";
+			}
+		}
 
 
 		$var_to_col_mapping = array("ids" => $ID_TYPES[$id_type], "activity" => "updated", "creation" => "created");
@@ -115,14 +125,14 @@ class Question
 
 		$query = "SELECT * FROM `qa_posts` ";
 		
-		if(true || isset($fromdate) || isset($todate) || isset($min) || isset($max) || isset($ids))
-		{
-			$use_and = true;
+		$use_and = true;
 			$query .= " WHERE type = 'Q'";
-			
-			/** /
+		if(isset($fromdate) || isset($todate) || isset($min) || isset($max) || isset($ids))
+		{
 			if(isset($fromdate))
 			{
+				if($use_and)
+					$query .= " AND";
 				$query .= " ".$var_to_col_mapping["creation"]." > ".$fromdate;
 				$use_and = true;
 			}
@@ -134,7 +144,6 @@ class Question
 				$query .= " ".$var_to_col_mapping["creation"]." < ".$todate;
 				$use_and = true;
 			}
-			/**/
 
 			if(isset($min))
 			{
@@ -157,7 +166,7 @@ class Question
 				if($use_and)
 					$query .= " AND";
 				$query .= " ".$var_to_col_mapping["ids"]." IN (";
-				for ($index=0; $index < count($ids); $index++)
+				for($index=0; $index < count($ids); $index++)
 				{
 					if(0 < $index)
 					{
