@@ -6,7 +6,7 @@
     <hr>
     <br>
 
-    <div id="pages" >
+    <div id="pages" border="1" style="width:100%" height: 300px overflow: scroll>
         <h1>Libraries</h1>
         <a onclick="test()" href="#">Click Me</a>
     </div>
@@ -17,7 +17,7 @@
 
     <div id="source">
         <h1>Source Code</h1>
-        <table id="sourceBox" border="1" style="width:100%" overflow: scroll>
+        <table id="sourceBox" border="1" style="width:100%" height: 300px overflow: scroll>
             <tr><td>Source Code</td></tr>
         </table>
     </div>
@@ -41,9 +41,8 @@
 
     function nav(name, id, type)
     {
-        alert(name + ", " + id + ", " + type);
-
-
+        // Update navigation links. If name is in list, delete elements after name.
+        // If not found, append name to list of links.
         var navigation = document.getElementById("navigation");
         var child;
         var numchild = navigation.childNodes.length;
@@ -54,7 +53,7 @@
             if (found) {
                 navigation.removeChild(navigation.childNodes[x]);
             }
-            if (child.firstChild.nodeValue == name) {
+            if (child.firstChild.nodeValue == " \\ " + name) {
                 found = true;
             }
         }
@@ -62,10 +61,90 @@
             var a = document.createElement("a");
             a.href = "#";
             a.setAttribute("onclick", "nav(\"" + name + "\", " + id + ", " + "\"" + type + "\")" );
-            a.innerHTML = name;
+            a.innerHTML = " \\ " + name;
             navigation.appendChild(a);
         }
 
+        // Update pages
+        var pages = document.getElementById("pages");
+        var pagetype;
+        if (type == "library") {
+            pages.innerHTML = "<h1>Packages</h1>";
+            pagetype = "package";
+        }
+        else if (type == "package") {
+            pages.innerHTML = "<h1>Classes</h1>";
+            pagetype = "class";
+        }
+        else if (type == "class") {
+            pages.innerHTML = "<h1>Methods</h1>";
+            pagetype = "methods";
+        }
+        else {
+            pages.innerHTML = "";
+            pagetype = "none";
+        }
+
+        var pagedata;
+        if (type != "method")
+        {
+            var request = $.post("navigation.php", 
+                {
+                    "name": String(name),
+                    "id": parseInt(id),
+                    "type": String(type),
+                    "pagetype": String(pagetype)
+                },
+                function(data, status, xhr){
+                    pagedata = data;
+                },
+                "json"
+            );
+
+            request.done(function() 
+            {
+                // add pages
+                for (var x = 0; x < pagedata.length; x++)
+                {
+                    var a = document.createElement("a");
+                    a.setAttribute("onclick", "nav(\"" + pagedata[x].Name + "\", " + pagedata[x].ID + ", \"" + pagetype + "\")" );
+                    a.href = "#";
+                    a.innerHTML = pagedata[x].Name;
+                    pages.appendChild(a);
+                    var br = document.createElement("br");
+                    pages.appendChild(br);
+                }
+            });
+
+        }
+
+        // Update source code div
+        var source = document.getElementById("source");
+        if (type == "class" || type == "method")
+        {
+            var request = $.post("source.php", 
+                {
+                    "name": String(name),
+                    "id": parseInt(id),
+                    "type": String(type),
+                },
+                function(data, status, xhr){
+                    pagedata = data;
+                },
+                "json"
+            );
+            request.done(function() 
+            {
+                // add source
+                var sourceBox = document.getElementById("sourceBox");
+                sourceBox.innerHTML = "<tr><td>" + pagedata.Source +"</td></tr>";
+                
+            });
+            source.style.display = 'block';
+        }
+        else {
+            source.style.display = 'none';
+        }
     }
 
     function initialize()
@@ -86,7 +165,6 @@
             },
             function(data, status, xhr){
                 libs = data;
-                //alert(libs[0].Name);
             },
             "json"
         );
@@ -103,8 +181,6 @@
                 pages.appendChild(br);
             }
         });
-
-        
 
         // hide source cod div
         var source = document.getElementById("source");

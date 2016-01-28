@@ -4,20 +4,18 @@
 	// Retrieve link info
 	$result;
 	$type = $_POST["type"];
+	$id = $_POST["id"];
 	if ($type == "home") {
-		$result = qa_db_query_raw("SELECT * FROM `library`");
+		$result = qa_db_query_raw("SELECT * FROM `library` ORDER BY ID");
 	}
 	else if ($type == "library") {
-		$id = $_POST["ID"];
-		$result = qa_db_query_raw("SELECT p.ID, p.Name FROM `package p` WHERE p.LID = " + $id );
+		$result = qa_db_query_raw("SELECT ID, Name FROM `package` WHERE LID = " . $id . " ORDER BY ID");
 	}
 	else if ($type == "package") {
-		$id = $_POST["ID"];
-		$result = qa_db_query_raw("SELECT t.ID, t.Name FROM `type t` WHERE t.PID = " + $id );
+		$result = qa_db_query_raw("SELECT ID, Name FROM `type` WHERE PID = " . $id . " ORDER BY ID");
 	}
 	else if ($type == "class") {
-		$id = $_POST["ID"];
-		$result = qa_db_query_raw("SELECT m.ID, m.Name FROM `method m` WHERE m.TID = " + $id );
+		$result = qa_db_query_raw("SELECT ID, Name FROM `method` WHERE TID = " . $id . " ORDER BY ID");
 	}
 
 	
