@@ -1,6 +1,6 @@
 <div id="content">
     <div id="navigation" >
-        <a onclick="initialize()" href="#">Home</a> 
+        <a name="home" onclick="initialize()" href="#">Home</a> 
     </div>
 
     <hr>
@@ -64,6 +64,7 @@
         }
         if (!found) {
             var a = document.createElement("a");
+            a.name = name;
             a.href = "#";
             a.setAttribute("onclick", "nav(\"" + name + "\", " + id + ", " + "\"" + type + "\")" );
             a.innerHTML = " \\ " + name;
@@ -122,7 +123,11 @@
                     var a = document.createElement("a");
                     a.setAttribute("onclick", "nav(\"" + pagedata[x].Name + "\", " + pagedata[x].ID + ", \"" + pagetype + "\")" );
                     a.href = "#";
-                    a.innerHTML = pagedata[x].Name;
+                    var text = pagedata[x].Name;;
+                    if (pagetype == "method") {
+                        text = pagedata[x].Name + "(" + pagedata[x].Arguments + ")";
+                    }
+                    a.innerHTML = text;
                     pageBox.appendChild(a);
                     var br = document.createElement("br");
                     pageBox.appendChild(br);
