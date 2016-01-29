@@ -1,0 +1,203 @@
+<div id="content">
+    <div id="navigation" >
+        <a onclick="initialize()" href="#">Home</a> 
+    </div>
+
+    <hr>
+    <br>
+
+    <div id="pages" style="width:100%;">
+        <h1 id="pageHeading">Libraries</h1>
+        <div id="pageBox" border="1" style="width:100%; max-height: 300px; overflow: auto;">
+            <a onclick="test()" href="#">Click Me</a>
+        </div>
+    </div>
+
+    <br>
+    <hr>
+    <br>
+
+    <div id="source" style="width:100%;">
+        <h1 id="sourceHeading">Source Code</h1>
+        <!--<textarea readonly id="sourceBox" border="1" style="width: 698px; min-height: 300px; max-height: 600px; display: block;"></textarea>-->
+        
+        <div id="sourceBox" border="1" style="width: 698px; min-height: 300px; max-height: 600px; display: block; overflow: auto;">
+
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    initialize();
+    function test()
+    {
+        $.post("test.php",
+            {
+                name: "Donald Duck",
+                city: "Duckburg"
+            },
+            function(data, status, xhr){
+                alert("Data: " + data[0].Name + "\nStatus: " + status);
+            }, 
+            "json"
+        );
+    }
+
+    function nav(name, id, type)
+    {
+        // Update navigation links. If name is in list, delete elements after name.
+        // If not found, append name to list of links.
+        var navigation = document.getElementById("navigation");
+        var child;
+        var numchild = navigation.childNodes.length;
+        var found = false;
+        var nodes = navigation.childNodes;
+        for (var x = 0; x < numchild; x++)
+        {
+            child = nodes[x];
+            if (found) {
+                navigation.removeChild(nodes[x]);
+            }
+            if (child.firstChild.nodeValue == " \\ " + name) {
+                found = true;
+            }
+        }
+        if (!found) {
+            var a = document.createElement("a");
+            a.href = "#";
+            a.setAttribute("onclick", "nav(\"" + name + "\", " + id + ", " + "\"" + type + "\")" );
+            a.innerHTML = " \\ " + name;
+            navigation.appendChild(a);
+        }
+
+        // Update pages
+        var pages = document.getElementById("pages");
+        var pageHeading = document.getElementById("pageHeading");
+        var pagetype;
+        var pageBox = document.getElementById("pageBox");
+        pageBox.innerHTML = "";
+
+        if (type == "library") {
+            pageHeading.style.display = 'block';
+            pageHeading.innerHTML = "Packages";
+            pagetype = "package";
+        }
+        else if (type == "package") {
+            pageHeading.style.display = 'block';
+            pageHeading.innerHTML = "Classes";
+            pagetype = "class";
+        }
+        else if (type == "class") {
+            pageHeading.style.display = 'block';
+            pageHeading.innerHTML = "Methods";
+            pagetype = "method";
+        }
+        else {
+            pageHeading.style.display = 'none';
+            pageHeading.innerHTML = "";
+            pagetype = "none";
+        }
+
+        var pagedata;
+        if (type != "method")
+        {
+            var request = $.post("navigation.php", 
+                {
+                    "name": String(name),
+                    "id": parseInt(id),
+                    "type": String(type),
+                    "pagetype": String(pagetype)
+                },
+                function(data, status, xhr){
+                    pagedata = data;
+                },
+                "json"
+            );
+
+            request.done(function() 
+            {
+                // add pages
+                for (var x = 0; x < pagedata.length; x++)
+                {
+                    var a = document.createElement("a");
+                    a.setAttribute("onclick", "nav(\"" + pagedata[x].Name + "\", " + pagedata[x].ID + ", \"" + pagetype + "\")" );
+                    a.href = "#";
+                    a.innerHTML = pagedata[x].Name;
+                    pageBox.appendChild(a);
+                    var br = document.createElement("br");
+                    pageBox.appendChild(br);
+                }
+            });
+        }
+
+        // Update source code div
+        var source = document.getElementById("source");
+        if (type == "class" || type == "method")
+        {
+            var request = $.post("source.php", 
+                {
+                    "name": String(name),
+                    "id": parseInt(id),
+                    "type": String(type),
+                },
+                function(data, status, xhr){
+                    pagedata = data;
+                },
+                "json"
+            );
+            request.done(function() 
+            {
+                // add source
+                var sourceBox = document.getElementById("sourceBox");
+                sourceBox.innerHTML = "<pre>" + pagedata.source + "</pre>";
+                
+            });
+            source.style.display = 'block';
+        }
+        else {
+            source.style.display = 'none';
+        }
+    }
+
+    function initialize()
+    {
+        // set navigation to home
+        var navigation = document.getElementById("navigation");
+        navigation.innerHTML = "<a onclick=\"initialize()\" href=\"#\">Home</a>";
+
+        // Set pages label to Libraries
+        var pages = document.getElementById("pages");
+        pages.firstChild.innerHTML = "Libraries";
+        var pageBox = document.getElementById("pageBox");
+        pageBox.innerHTML = "";
+
+        // get libraries from database
+        var libs;
+        var request = $.post("navigation.php", 
+            {
+                type: "home"
+            },
+            function(data, status, xhr){
+                libs = data;
+            },
+            "json"
+        );
+        request.done(function() {
+            // add libraries to pagebox
+            for (var x = 0; x < libs.length; x++)
+            {
+                var a = document.createElement("a");
+                a.setAttribute("onclick", "nav(\"" + libs[x].Name + "\", " + libs[x].ID + ", " + "\"library\")" );
+                a.href = "#";
+                a.innerHTML = libs[x].Name;
+                pageBox.appendChild(a);
+                var br = document.createElement("br");
+                pageBox.appendChild(br);
+            }
+        });
+
+        // hide source cod div
+        var source = document.getElementById("source");
+        source.style.display = 'none';
+    }
+</script>
