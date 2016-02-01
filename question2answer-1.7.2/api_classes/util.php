@@ -3,7 +3,7 @@ define("IN_MYBB", 1);
 header("access-control-allow-origin: *");
 header('Content-Type: application/json');//JSON-formatting
 
-$ID_TYPES = array('user' => 'userid', 'answer' => 'postid', 'question' => 'postid');
+$ID_TYPES = array('user' => 'userid', 'answer' => 'postid', 'question' => 'postid', 'comment' => 'postid', 'post' => 'postid');
 
 function paginate_query($query, $n)
 {

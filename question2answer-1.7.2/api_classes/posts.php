@@ -8,12 +8,12 @@ header('Content-Type: application/json');//JSON-formatting
 * The class for an answer.
 * Data for this comes from: https://api.stackexchange.com/docs/types/answer
 */
-class Answer
+class Post
 {
 	/** /
 	var $accepted;
 	/**/
-	var $answer_id;
+	var $post_id;
 	/** /
 	var $awarded_bounty_amount;
 	var $awarded_bounty_users;
@@ -39,7 +39,7 @@ class Answer
 	var $locked_date;
 	/**/
 	var $owner;
-	var $question_id;
+	var $parent_post_id;
 	/** /
 	var $score;
 	var $share_link;
@@ -50,27 +50,29 @@ class Answer
 	var $up_vote_count;
 	var $upvoted;
 	/**/
+	var $type;
 
 	function __construct($row)
 	{
-		$this->answer_id = $row['postid'];
+		$this->type = $row['type'];
+		$this->post_id = $row['postid'];
 		$this->body = $row['content'];
 		$this->creation_date = $row['created'];
 		//$this->last_activity_date = $row['edittime'];
 		$this->last_edit_date = $row['updated'];
 		$this->last_editor = $row['lastuserid'];
 		$this->owner = $row['userid'];
-		$this->question_id = $row['parentid'];
+		$this->parent_post_id = $row['parentid'];
 		$this->title = $row['title'];
 	}
 
-	static function get_query($ids, $id_type='answer')
+	static function get_query($ids, $id_type='post')
 	{
 
 		global $ID_TYPES;
 
 		if(!in_array($ID_TYPES[$id_type], array("userid", "postid")))
-			$id_type = 'answer';
+			$id_type = 'post';
 		
 
 		$order = process_order();
@@ -106,10 +108,10 @@ class Answer
 	
 		$query = "SELECT * FROM `qa_posts` ";
 		
-		$use_and = true;
-			$query .= " WHERE type = 'A'";
 		if(isset($fromdate) || isset($todate) || isset($min) || isset($max) || isset($ids))
 		{
+			$use_and = false;
+			$query .= " WHERE";
 			if(isset($fromdate))
 			{
 				if($use_and)
