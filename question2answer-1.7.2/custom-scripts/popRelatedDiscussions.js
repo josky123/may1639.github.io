@@ -140,7 +140,18 @@ function genRelatedDiscussions(){
 	var forumName;
 	var parentName;
 	
+	var list = document.getElementById("rel_dis");
+	list.innerHTML = "";
+	var msg1 = document.createTextNode("Related StackOverlow Posts Will Be Displayed Here.");
+	
 	if( navlen < 4 ){
+		
+		var li1 = document.createElement("li");
+		li1.appendChild(msg1);
+		list.appendChild(li1);
+		list.style.listStyleType = "none";
+		list.style.padding = "0px";
+		
 		return;
 	}
 	
@@ -189,13 +200,23 @@ function genRelatedDiscussions(){
 			var relevantIndices = populateRelatedDiscussions(data);
 		
 			// Populate the discussion box
-			var list = document.getElementById("rel_dis");
+//			var list = document.getElementById("rel_dis");
 			
-			list.innerHTML = "";
+//			list.innerHTML = "";
 
 			var printedRes = 0;
 		 
 			//console.log(data);
+		 
+			if( relevantIndices.length == 0 ){
+				
+				var msg2 = document.createTextNode("No Related StackOverlow Posts For This Page.");
+				var li2 = document.createElement("li");
+				li2.appendChild(msg2);
+				list.appendChild(li2);
+				list.style.listStyleType = "none";
+				list.style.padding = "0px";
+			}
 		 
 			for( i = 0; i < relevantIndices.length; i++ ){
 				
