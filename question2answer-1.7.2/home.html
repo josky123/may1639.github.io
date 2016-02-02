@@ -1,3 +1,5 @@
+<script src="http://may1639.sd.ece.iastate.edu/question2answer-1.7.2/custom-scripts/popRelatedDiscussions.js"></script>
+
 <div id="content">
     <div id="navigation" >
         <a name="home" onclick="initialize()" href="#">Home</a> 
@@ -21,7 +23,7 @@
         <h1 id="sourceHeading">Source Code</h1>
         <!--<textarea readonly id="sourceBox" border="1" style="width: 698px; min-height: 300px; max-height: 600px; display: block;"></textarea>-->
         
-        <div id="sourceBox" border="1" style="width: 698px; min-height: 300px; max-height: 600px; display: block; overflow: auto;">
+        <div id="sourceBox" border="1" style="width: 100%; min-height: 300px; max-height: 600px; display: block; overflow: auto;">
 
         </div>
     </div>
@@ -126,7 +128,6 @@
                 for (var x = 0; x < pagedata.length; x++)
                 {
                     var a = document.createElement("a");
-                    a.setAttribute("onclick", "nav(\"" + pagedata[x].Name + "\", " + pagedata[x].ID + ", \"" + pagetype + "\")" );
                     a.href = "#";
                     var text = pagedata[x].Name;;
                     if (pagetype == "method") {
@@ -134,6 +135,7 @@
                         args = args.replace(",", ", ");
                         text = pagedata[x].Name + "(" + args + ")";
                     }
+					a.setAttribute("onclick", "nav(\"" + text + "\", " + pagedata[x].ID + ", \"" + pagetype + "\")" );
                     a.innerHTML = text;
                     pageBox.appendChild(a);
                     var br = document.createElement("br");
@@ -169,6 +171,8 @@
         else {
             source.style.display = 'none';
         }
+		
+		genRelatedDiscussions();
     }
 
     function initialize()
