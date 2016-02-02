@@ -15,7 +15,7 @@
 		$result = qa_db_query_raw("SELECT ID, Name FROM `type` WHERE PID = " . $id . " ORDER BY ID");
 	}
 	else if ($type == "class") {
-		$result = qa_db_query_raw("SELECT ID, Name FROM `method` WHERE TID = " . $id . " ORDER BY ID");
+		$result = qa_db_query_raw("SELECT ID, Name, Arguments FROM `method` WHERE TID = " . $id . " ORDER BY ID");
 	}
 
 	

@@ -52,14 +52,16 @@
         var numchild = navigation.childNodes.length;
         var found = false;
         var nodes = navigation.childNodes;
+        var index;
         for (var x = 0; x < numchild; x++)
         {
             child = nodes[x];
             if (found) {
-                navigation.removeChild(nodes[x]);
+                navigation.removeChild(nodes[index]);
             }
-            if (child.firstChild.nodeValue == " \\ " + name) {
+            else if (child.name == name) {
                 found = true;
+                index = x + 1;
             }
         }
         if (!found) {
@@ -111,6 +113,9 @@
                 },
                 function(data, status, xhr){
                     pagedata = data;
+                    // if (type == "class") {
+                    //     console.log(pagedata);
+                    // }
                 },
                 "json"
             );
@@ -125,7 +130,9 @@
                     a.href = "#";
                     var text = pagedata[x].Name;;
                     if (pagetype == "method") {
-                        text = pagedata[x].Name + "(" + pagedata[x].Arguments + ")";
+                        var args = pagedata[x].Arguments;
+                        args = args.replace(",", ", ");
+                        text = pagedata[x].Name + "(" + args + ")";
                     }
                     a.innerHTML = text;
                     pageBox.appendChild(a);
