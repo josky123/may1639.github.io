@@ -4,6 +4,8 @@ require_once "./api_classes/util.php";
 require_once "./api_classes/users.php";
 require_once "./api_classes/questions.php";
 require_once "./api_classes/answers.php";
+require_once "./api_classes/comments.php";
+require_once "./api_classes/posts.php";
 require './qa-include/qa-base.php';
 
 header("access-control-allow-origin: *");
@@ -68,7 +70,7 @@ function users($id_type='user')//what should happen if the path starts with 'use
 
 function answers($id_type='answer')
 {
-	global $path, $db;
+	global $path;
 
 	if (count($path) > 1)
 	{
@@ -105,6 +107,88 @@ function answers($id_type='answer')
 	while($row = mysqli_fetch_array($results, MYSQL_ASSOC))
 	{		
 		array_push($retval, new Answer($row));
+	}
+
+	return $retval;
+}
+
+function comments($id_type='comment')
+{
+	global $path;
+
+	if (count($path) > 1)
+	{
+		switch($path[1])
+		{
+			// case 'moderators':
+				
+			// 	break;
+			
+			default:
+				$ids = $path[1];
+				process_ids($ids);
+				break;
+		}
+	}
+
+	if(isset($ids))
+	{
+		$ids = explode(";", $ids);
+	}
+
+	$query = Comment::get_query($ids, $id_type);
+	// echo "string";
+	// return $query;
+	$query = paginate_query($query, mysqli_num_rows(qa_db_query_raw($query)));
+
+	$results = qa_db_query_raw($query);
+	
+	$retval = array();
+
+	while($row = mysqli_fetch_array($results, MYSQL_ASSOC))
+	{		
+		array_push($retval, new Comment($row));
+	}
+
+	return $retval;
+}
+
+function posts($id_type='post')
+{
+	global $path;
+
+	if (count($path) > 1)
+	{
+		switch($path[1])
+		{
+			// case 'moderators':
+				
+			// 	break;
+			
+			default:
+				$ids = $path[1];
+				process_ids($ids);
+				break;
+		}
+	}
+
+	if(isset($ids))
+	{
+		$ids = explode(";", $ids);
+	}
+
+	$query = Post::get_query($ids, $id_type);
+	// echo "string";
+	// return $query;
+	$query = paginate_query($query, mysqli_num_rows(qa_db_query_raw($query)));
+
+	$results = qa_db_query_raw($query);
+	
+	$retval = array();
+
+	while($row = mysqli_fetch_array($results, MYSQL_ASSOC))
+	{		
+		array_push($retval, new Post($row));
 	}
 
 	return $retval;
@@ -163,6 +247,14 @@ switch($path[0])//selects proper function to call.
 	
 	case 'answers':
 		$return_value = array("items" => answers("answer"));
+		break;
+
+	case 'comments':
+		$return_value = array("items" => comments("comment"));
+		break;
+	
+	case 'posts':
+		$return_value = array("items" => posts("post"));
 		break;
 
 	case 'questions':
