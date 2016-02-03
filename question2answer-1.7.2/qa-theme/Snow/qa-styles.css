@@ -411,7 +411,8 @@ input[type="submit"].qa-search-button:hover {
 /* Body styles */
 
 .qa-body-wrapper {
-	width: 1000px;
+	/*width: 1000px;*/
+	width: 1200px;
 	text-align: left;
 	margin: 0 auto 50px auto;
 }
@@ -584,7 +585,8 @@ div.header-banner {
 .qa-main {
 	padding-left: 10px;
 	float: left;
-	width: 710px;
+	/*width: 710px;*/
+	width: 800px;
 	margin: 10px 0 24px;
 	clear: left;
 	overflow: hidden;
@@ -949,7 +951,8 @@ div.header-banner {
 /* Page sections */
 .qa-sidepanel {
 	float: right;
-	width: 240px;
+	/*width: 240px;*/
+	width: 350px;
 	padding: 10px;
 	min-height: 80px;
 	word-wrap: break-word;
