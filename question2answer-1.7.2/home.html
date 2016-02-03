@@ -212,12 +212,13 @@
             }
         });
 
-        // hide source cod div
+        // hide source code div
         var source = document.getElementById("source");
         source.style.display = 'none';
 			
 		var sidebar = document.getElementById("sidebar");
-		sidebar.style.visibility = "visible";
+		//sidebar.style.visibility = "visible";
+        sidebar.style.display = 'block';
 		var list = document.getElementById("rel_dis");
 		list.innerHTML = "";
 		var msg1 = document.createTextNode("Related StackOverlow Posts Will Be Displayed Here.");
