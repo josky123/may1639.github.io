@@ -45,7 +45,7 @@
 		global $name;
 		$result = qa_db_query_raw(" SELECT t.Name AS TName, t.ID AS TID, p.Name AS PName, p.ID AS PID, l.Name AS LName, l.ID AS LID
 									FROM type t, package p, library l
-									WHERE t.Name = " . $name . " AND t.PID = p.ID AND p.LID = l.ID 
+									WHERE t.Name = '$name' AND t.PID = p.ID AND p.LID = l.ID 
 									ORDER BY t.Name");
 	}
 	function searchPackage() {
