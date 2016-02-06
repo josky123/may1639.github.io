@@ -1,17 +1,30 @@
 <script src="http://may1639.sd.ece.iastate.edu/question2answer-1.7.2/custom-scripts/popRelatedDiscussions.js"></script>
-
+<script src="http://may1639.sd.ece.iastate.edu/question2answer-1.7.2/custom-scripts/home.js"></script>
 <div id="content">
     <div id="navigation" >
-        <a name="home" onclick="initialize()" href="#">Home</a> 
+        <a name="home" onclick="initialize()" href="#">Home</a>
     </div>
 
     <hr>
     <br>
-
+    <p>Search by Category and Name</p>
+    <div id="search">
+        <select id="searchType">
+            <!--<option value="any">Any</option>-->
+            <option value="library">Library</option>
+            <option value="package">Package</option>
+            <option value="class">Class</option>
+            <option value="method">Method</option>
+        </select>
+        <input id="searchBox" type="text">
+        <button id="searchButton" type="button" onclick="searchTest()">Search!</button>
+    </div>
+    <hr>
+    <br>
     <div id="pages" style="width:100%;">
         <h1 id="pageHeading">Libraries</h1>
         <div id="pageBox" border="1" style="width:100%; max-height: 300px; overflow: auto;">
-            <a onclick="test()" href="#">Click Me</a>
+            <a onclick="alert('Click!')" href="#">Click Me</a>
         </div>
     </div>
 
@@ -21,212 +34,10 @@
 
     <div id="source" style="width:100%;">
         <h1 id="sourceHeading">Source Code</h1>
-        <!--<textarea readonly id="sourceBox" border="1" style="width: 698px; min-height: 300px; max-height: 600px; display: block;"></textarea>-->
-        
-        <div id="sourceBox" border="1" style="width: 100%; min-height: 300px; max-height: 600px; display: block; overflow: auto;">
-
-        </div>
+        <div id="sourceBox" border="1" style="width: 100%; min-height: 300px; max-height: 600px; display: block; overflow: auto;"></div>
     </div>
 </div>
 
 <script type="text/javascript">
-    initialize();
-    function test()
-    {
-        $.post("test.php",
-            {
-                name: "Donald Duck",
-                city: "Duckburg"
-            },
-            function(data, status, xhr){
-                alert("Data: " + data[0].Name + "\nStatus: " + status);
-            }, 
-            "json"
-        );
-    }
-
-    function nav(name, id, type)
-    {
-        // Update navigation links. If name is in list, delete elements after name.
-        // If not found, append name to list of links.
-        var navigation = document.getElementById("navigation");
-        var child;
-        var numchild = navigation.childNodes.length;
-        var found = false;
-        var nodes = navigation.childNodes;
-        var index;
-        for (var x = 0; x < numchild; x++)
-        {
-            child = nodes[x];
-            if (found) {
-                navigation.removeChild(nodes[index]);
-            }
-            else if (child.name == name) {
-                found = true;
-                index = x + 1;
-            }
-        }
-        if (!found) {
-            var a = document.createElement("a");
-            a.name = name;
-            a.href = "#";
-            a.setAttribute("onclick", "nav(\"" + name + "\", " + id + ", " + "\"" + type + "\")" );
-            a.innerHTML = " \\ " + name;
-            navigation.appendChild(a);
-        }
-
-        // Update pages
-        var pages = document.getElementById("pages");
-        var pageHeading = document.getElementById("pageHeading");
-        var pagetype;
-        var pageBox = document.getElementById("pageBox");
-        pageBox.innerHTML = "";
-
-        if (type == "library") {
-            pageHeading.style.display = 'block';
-            pageHeading.innerHTML = "Packages";
-            pagetype = "package";
-        }
-        else if (type == "package") {
-            pageHeading.style.display = 'block';
-            pageHeading.innerHTML = "Classes";
-            pagetype = "class";
-        }
-        else if (type == "class") {
-            pageHeading.style.display = 'block';
-            pageHeading.innerHTML = "Methods";
-            pagetype = "method";
-        }
-        else {
-            pageHeading.style.display = 'none';
-            pageHeading.innerHTML = "";
-            pagetype = "none";
-        }
-
-        var pagedata;
-        if (type != "method")
-        {
-            var request = $.post("navigation.php", 
-                {
-                    "name": String(name),
-                    "id": parseInt(id),
-                    "type": String(type),
-                    "pagetype": String(pagetype)
-                },
-                function(data, status, xhr){
-                    pagedata = data;
-                    // if (type == "class") {
-                    //     console.log(pagedata);
-                    // }
-                },
-                "json"
-            );
-
-            request.done(function() 
-            {
-                // add pages
-                for (var x = 0; x < pagedata.length; x++)
-                {
-                    var a = document.createElement("a");
-                    a.href = "#";
-                    var text = pagedata[x].Name;;
-                    if (pagetype == "method") {
-                        var args = pagedata[x].Arguments;
-                        args = args.replace(",", ", ");
-                        text = pagedata[x].Name + "(" + args + ")";
-                    }
-					a.setAttribute("onclick", "nav(\"" + text + "\", " + pagedata[x].ID + ", \"" + pagetype + "\")" );
-                    a.innerHTML = text;
-                    pageBox.appendChild(a);
-                    var br = document.createElement("br");
-                    pageBox.appendChild(br);
-                }
-            });
-        }
-
-        // Update source code div
-        var source = document.getElementById("source");
-        if (type == "class" || type == "method")
-        {
-            var request = $.post("source.php", 
-                {
-                    "name": String(name),
-                    "id": parseInt(id),
-                    "type": String(type),
-                },
-                function(data, status, xhr){
-                    pagedata = data;
-                },
-                "json"
-            );
-            request.done(function() 
-            {
-                // add source
-                var sourceBox = document.getElementById("sourceBox");
-                sourceBox.innerHTML = "<pre>" + pagedata.source + "</pre>";
-                
-            });
-            source.style.display = 'block';
-        }
-        else {
-            source.style.display = 'none';
-        }
-		
-		genRelatedDiscussions();
-    }
-
-    function initialize()
-    {
-        // set navigation to home
-        var navigation = document.getElementById("navigation");
-        navigation.innerHTML = "<a onclick=\"initialize()\" href=\"#\">Home</a>";
-
-        // Set pages label to Libraries
-        var pages = document.getElementById("pages");
-        pages.firstChild.innerHTML = "Libraries";
-        var pageBox = document.getElementById("pageBox");
-        pageBox.innerHTML = "";
-
-        // get libraries from database
-        var libs;
-        var request = $.post("navigation.php", 
-            {
-                type: "home"
-            },
-            function(data, status, xhr){
-                libs = data;
-            },
-            "json"
-        );
-        request.done(function() {
-            // add libraries to pagebox
-            for (var x = 0; x < libs.length; x++)
-            {
-                var a = document.createElement("a");
-                a.setAttribute("onclick", "nav(\"" + libs[x].Name + "\", " + libs[x].ID + ", " + "\"library\")" );
-                a.href = "#";
-                a.innerHTML = libs[x].Name;
-                pageBox.appendChild(a);
-                var br = document.createElement("br");
-                pageBox.appendChild(br);
-            }
-        });
-
-        // hide source code div
-        var source = document.getElementById("source");
-        source.style.display = 'none';
-			
-		var sidebar = document.getElementById("sidebar");
-		//sidebar.style.visibility = "visible";
-        sidebar.style.display = 'block';
-		var list = document.getElementById("rel_dis");
-		list.innerHTML = "";
-		var msg1 = document.createTextNode("Related StackOverlow Posts Will Be Displayed Here.");
-		
-		var li1 = document.createElement("li");
-		li1.appendChild(msg1);
-		list.appendChild(li1);
-		list.style.listStyleType = "none";
-		list.style.padding = "0px";
-    }
+    $( document ).ready(initialize());
 </script>

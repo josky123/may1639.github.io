@@ -6,10 +6,10 @@
 	$type = $_POST["type"];
 	$id = $_POST["id"];
 
-	if ($type == "class") {
+	if ($type == "Class") {
 		$result = qa_db_query_raw("SELECT source FROM `type` WHERE ID = " . $id);
 	}
-	else if ($type == "method") {
+	else if ($type == "Method") {
 		$result = qa_db_query_raw("SELECT source FROM `method` WHERE ID = " . $id);
 	}
 
