@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Testing PHP and AJAX</title>
+<script src="jquery-2.2.0.js"></script>
+</head>
+
+<body id="rp-body">
+	<p>
+	Activate the 
+	</p>
+	
+	<button type="button" onclick="myFunc()">Message</button>
+	<div id="rp-change"></div>
+	
+	<script>
+	/*function myFunc(){
+		$.post("hello-world.php", function(data){*/
+	function myFunc(){
+		$.post("http://may1639.sd.ece.iastate.edu/question2answer-1.7.2/custom-scripts/sample-parser.php", function(data){
+			$('#rp-change').append( data );
+		});
+	}
+	</script>
+
+</body>
+
+</html>
