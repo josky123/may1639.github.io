@@ -32,27 +32,44 @@ function searchTest()
             }
             for (var x = 0; x < pagedata.length; x++)
             {
-                var a = document.createElement("a");
-                a.href = "#";
-                var text = "";
-                if (searchType == "Method") {
-                    text = pagedata[x].LName + " \\ " + pagedata[x].PName + " \\ " + pagedata[x].TName + " \\ " + pagedata[x].MName + "(" + pagedata[x].Args + ")";
-                    a.setAttribute("onclick", "nav(\"" + pagedata[x].MName + "\", " + pagedata[x].MID + ", \"" + searchType + "\")" );
-                } 
-                else if (searchType == "Class") {
-                    text = pagedata[x].LName + " \\ " + pagedata[x].PName + " \\ " + pagedata[x].TName;
-                    a.setAttribute("onclick", "nav(\"" + pagedata[x].TName + "\", " + pagedata[x].TID + ", \"" + searchType + "\")" );
+                // array of links
+                var links = new Array();
+
+                // create link
+                var l = document.createElement("a");
+                // set link to top of page
+                l.href = "#";
+                // set displayed text of link
+                l.innerHTML = pagedata[x].LName;
+                // set onclick function
+                l.setAttribute("onclick", "nav(\"" + pagedata[x].LName + "\", " + pagedata[x].LID + ", \"" + "Library" + "\")" );
+                // add new link to array
+                links[links.length] = l;
+
+                if (pagedata[x].hasOwnProperty("PName")) {
+                    var p = document.createElement("a");
+                    p.href = "#";
+                    p.innerHTML = " \\ " + pagedata[x].PName;
+                    p.setAttribute("onclick", "nav(\"" + pagedata[x].PName + "\", " + pagedata[x].PID + ", \"" + "Package" + "\")" );
+                    links[links.length] = p;
                 }
-                else if (searchType == "Package") {
-                    text = pagedata[x].LName + " \\ " + pagedata[x].PName;
-                    a.setAttribute("onclick", "nav(\"" + pagedata[x].PName + "\", " + pagedata[x].PID + ", \"" + searchType + "\")" );
+                if (pagedata[x].hasOwnProperty("TName")) {
+                    var c = document.createElement("a");
+                    c.href = "#";
+                    c.innerHTML = " \\ " + pagedata[x].TName;
+                    c.setAttribute("onclick", "nav(\"" + pagedata[x].TName + "\", " + pagedata[x].TID + ", \"" + "Class" + "\")" );
+                    links[links.length] = c;
                 }
-                else if (searchType == "Library") {
-                    text = pagedata[x].LName;
-                    a.setAttribute("onclick", "nav(\"" + pagedata[x].LName + "\", " + pagedata[x].LID + ", \"" + searchType + "\")" );
+                if (pagedata[x].hasOwnProperty("MName")) {
+                    var m = document.createElement("a");
+                    m.href = "#";
+                    m.innerHTML = " \\ " + pagedata[x].MName + "(" + pagedata[x].Args + ")";
+                    m.setAttribute("onclick", "nav(\"" + pagedata[x].MName + "\", " + pagedata[x].MID + ", \"" + "Method" + "\")" );
+                    links[links.length] = m;
                 }
-                a.innerHTML = text;
-                pageBox.appendChild(a);
+                for (var j = 0; j < links.length; j++) {
+                    pageBox.appendChild(links[j]);
+                }
                 var br = document.createElement("br");
                 pageBox.appendChild(br);
             }
@@ -129,9 +146,6 @@ function nav(name, id, type)
             },
             function(data, status, xhr){
                 pagedata = data;
-                // if (type == "class") {
-                //     console.log(pagedata);
-                // }
             },
             "json"
         );
