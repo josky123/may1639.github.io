@@ -3,7 +3,7 @@ define("IN_MYBB", 1);
 header("access-control-allow-origin: *");
 header('Content-Type: application/json');//JSON-formatting
 
-$ID_TYPES = array('user' => 'userid', 'answer' => 'postid', 'question' => 'postid', 'comment' => 'postid', 'post' => 'postid');
+$ID_TYPES = array('user' => 'userid', 'answer' => 'postid', 'question' => 'postid', 'comment' => 'postid', 'post' => 'postid', 'tag' => 'tagid');
 
 function paginate_query($query, $n)
 {
@@ -80,7 +80,7 @@ function process_sort($mapping)
 
 function process_date($date)
 {
-	/** /
+	/**/
 	if((false === filter_input(INPUT_GET, $date, FILTER_VALIDATE_INT)) || $_GET[$date] < 0)
 		return_error(400, $date, 'bad_parameter');
 	/**/
