@@ -4,8 +4,8 @@ require_once "./api_classes/util.php";
 header('Content-Type: application/json');//JSON-formatting
 
 /**
-* The class for a user.
-* Data for this comes from: https://api.stackexchange.com/docs/types/user
+* The class for a Tag.
+* Data for this comes from: https://api.stackexchange.com/docs/types/tag
 */
 class Tag
 {
