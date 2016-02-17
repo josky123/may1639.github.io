@@ -21,11 +21,11 @@
 	}
 	else {
 		searchMethod();
-		if (!$result && mysqli_num_rows($result) == 0) {
+		if (mysqli_num_rows($result) == 0) {
 			searchType();
-			if (!$result && mysqli_num_rows($result) == 0) {
+			if (mysqli_num_rows($result) == 0) {
 				searchPackage();
-				if (!$result && mysqli_num_rows($result) == 0) {
+				if (mysqli_num_rows($result) == 0) {
 					searchLibrary();
 				}
 			}
