@@ -14,6 +14,8 @@ header('Content-Type: application/json');
 
 $path = explode('/', ltrim($_SERVER['PATH_INFO'], "/"));
 
+
+
 // $query = User::get_query($ids, $id_type);
 
 // echo $query;
@@ -308,19 +310,28 @@ switch($path[0])//selects proper function to call.
 	
 
 	default:
+		$return_value = 'e';
+		
+		$query = Question::main_query("8", "Answer");
+		
+		$return_value = $query;
+		
+		$return_value = array();
+
+		$results = qa_db_query_raw($query);
+
+		while($row = mysqli_fetch_array($results, MYSQL_ASSOC))
+		{
+			array_push($return_value, $row);
+		}
+		/**/
 		break;
 }
 
 if(!isset($return_value))
 	return_error(400, 'method', 'method_not_recognized');
 
-/** /
 
-User::func($path);
-
-echo "\nFIN";
-
-/**/
 //This line of code gzips everything presented as output
 ob_start('ob_gzhandler');
 

@@ -2,6 +2,7 @@
 define("IN_MYBB", 1);
 header("access-control-allow-origin: *");
 require_once "./api_classes/util.php";
+require_once "./api_classes/questions.php";
 header('Content-Type: application/json');//JSON-formatting
 
 /**
@@ -13,6 +14,7 @@ header('Content-Type: application/json');//JSON-formatting
 
 class Answer
 {
+
 	/** /
 	var $accepted;
 	/**/

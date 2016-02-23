@@ -2,6 +2,11 @@
 define("IN_MYBB", 1);
 header("access-control-allow-origin: *");
 require_once "./api_classes/util.php";
+require_once "./api_classes/answers.php";
+require_once "./api_classes/tags.php";
+require_once "./api_classes/comments.php";
+require_once "./api_classes/users.php";
+
 header('Content-Type: application/json');//JSON-formatting
 
 /**
@@ -10,8 +15,113 @@ header('Content-Type: application/json');//JSON-formatting
 */
 class Question
 {
-	/** /
 
+	static function question_id_query($IDs = false)
+	{
+		$query = "SELECT Q.* FROM `qa_posts` Q WHERE Q.type = 'Q'";
+		if(!empty($IDs))
+		{
+			$query .= " AND Q.postid IN (".implode(",", explode(";", $IDs)).")";
+		}
+		return $query;
+	}
+
+	static function answer_id_query($IDs = false)
+	{
+		$query = "SELECT DISTINCT Q.* FROM qa_posts Q, qa_posts A WHERE A.type = 'A' AND Q.type = 'Q' AND A.parentid = Q.postid";
+		if(!empty($IDs))
+		{
+			$query .= " AND A.postid IN (".implode(",", explode(";", $IDs)).")";
+		}
+		return $query;
+	}
+
+	static function main_query($IDs = false, $ID_type = "Question")
+	{
+		$query = "";
+
+		switch ($ID_type)
+		{
+			case 'Question':
+				$query = Question::question_id_query($IDs);
+				break;
+			
+			case 'Answer':
+				$query = Question::answer_id_query($IDs);
+				break;
+			
+			default:
+
+				break;
+		}
+		
+		
+		if(isset($_GET['fromdate']))
+		{
+			$query .= " AND Q.created > FROM_UNIXTIME(".$_GET['fromdate'].")";
+		}
+
+
+		if(isset($_GET['todate']))
+		{
+			$query .= " AND Q.created < FROM_UNIXTIME(".$_GET['todate'].")";
+		}
+		
+		if(isset($_GET['tagged']))
+		{
+			$tagged = explode(";", $_GET['tagged']);
+			foreach($tagged as $tag)
+			{
+				$query .= " AND Q.tags REGEXP \"(^|,)".$tag."($|,)\"";
+			}
+		}
+
+		$sort_type = "activity";
+		$sort_name = "Q.updated";
+		$var_to_col_mapping = array('activity' => 'Q.updated', 'creation' => 'Q.created', 'votes' => 'Q.netvotes');
+		if(isset($_GET['sort']))
+		{
+			if(in_array($_GET['sort'], array('activity', 'creation', 'votes')))
+			{
+				$sort_type = $_GET['sort'];
+				$sort_name = $var_to_col_mapping[$sort_type];
+			}
+			else
+			{
+				return_error(400, 'sort', 'bad_parameter');
+			}
+		}
+
+		$time_sorts = array("activity", "creation");
+		if (isset($_GET['min']))
+		{
+			$min = $_GET['min'];
+			if(in_array($sort_type, $time_sorts))
+			{
+				$min = "FROM_UNIXTIME(".$min.")";
+			}
+			$query .= " AND ".$sort_name." > ".$min;
+		}
+
+		if (isset($_GET['max']))
+		{
+			$max = $_GET['max'];
+			if(in_array($sort_type, $time_sorts))
+			{
+				$max = "FROM_UNIXTIME(".$max.")";
+			}
+			$query .= " AND ".$sort_name." < ".$max;
+		}
+
+		$query .= " ORDER BY ".$sort_name;
+		if(isset($_GET['order']) && in_array($_GET['order'], array("asc", "desc")))
+		{
+			$query .= " ".$_GET['order'];
+		}
+		return $query;
+	}
+
+	/** /
 	var $accepted_answer_id;
 	var $answer_count;
 	var $answers;
