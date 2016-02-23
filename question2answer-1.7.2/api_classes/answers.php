@@ -8,6 +8,9 @@ header('Content-Type: application/json');//JSON-formatting
 * The class for an answer.
 * Data for this comes from: https://api.stackexchange.com/docs/types/answer
 */
+
+//This is my branch.
+
 class Answer
 {
 	/** /
