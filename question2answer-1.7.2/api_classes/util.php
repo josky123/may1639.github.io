@@ -50,6 +50,43 @@ function return_error($id, $message, $name)
 	exit(json_encode($return_value));
 }
 
+
+/**
+This function takes in a string of semicolon-delimited numeric IDs,
+sorts them, removes duplicates, and formats them to be compatible
+with MySQL.
+*/
+function format_numeric_IDs($IDs)
+{
+	$IDs = preg_replace("/\s+/", "", $IDs);
+	$IDs = preg_replace("/;+/", ";", $IDs);
+	$IDs = trim($IDs, ";");
+	$IDs = explode(";", $IDs);
+	sort($IDs);
+	$IDs = array_unique($IDs);
+	$IDs = implode(",", $IDs);
+	return $IDs;
+}
+
+/**
+This function takes in a string of semicolon-delimited alphabetic IDs,
+sorts them, removes duplicates, and formats them to be compatible
+with MySQL.
+*/
+function format_alphabetic_IDs($IDs)
+{
+	$IDs = preg_replace("/\s+/", " ", $IDs);
+	$IDs = preg_replace("/\s*;+\s*/", ";", $IDs);
+	$IDs = trim($IDs, ";");
+	$IDs = explode(";", $IDs);
+	sort($IDs);
+	$IDs = array_unique($IDs);
+	$IDs = "'".implode("','", $IDs)."'";
+	return $IDs;
+}
+
+
+
 /**/
 
 function process_order()

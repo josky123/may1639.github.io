@@ -2,6 +2,9 @@
 header("access-control-allow-origin: *");
 require_once "./api_classes/util.php";
 require_once "./api_classes/questions.php";
+require_once "./api_classes/answers.php";
+require_once "./api_classes/comments.php";
+require_once "./api_classes/posts.php";
 header('Content-Type: application/json');//JSON-formatting
 
 /**
@@ -10,59 +13,20 @@ header('Content-Type: application/json');//JSON-formatting
 */
 class User
 {
-	/** /
-	var $about_me;
-	var $accept_rate;
-	/**/
-	var $account_id;
-	/** /
-	var $age;
-	var $answer_count;
-	var $badge_counts;
-	/**/
-	var $creation_time;
-	var $display_name;
-	/** /
-	var $down_vote_count;
-	var $is_employee;
-	/**/
-	var $last_access_date;
-	var $last_modified_date;
-	/** /
-	var $link;
-	var $location;
-	var $profile_image;
-	var $question_count;
-	/**/
-	var $reputation;
-	/** /
-	var $reputation_change_day;
-	var $reputation_change_month;
-	var $reputation_change_quarter;
-	var $reputation_change_week;
-	var $reputation_change_year;
-	var $timed_penalty_date;
-	var $up_vote_count;
-	/**/
+	const ID = "users";
+	
 	var $user_id;
-	/** /
-	var $user_type;
-	var $view_count;
-	var $website_url;
-	/**/
+	
+	static function get_valid_IDs($IDs)
+	{
+		return "SELECT DISTINCT U.`userid` FROM `qa_users` U WHERE U.`userid` IN (".$IDs.")";
+	}
 
 	function __construct($row)
 	{
-		$this->account_id = $row['userid'];
-		$this->creation_time = $row['created'];
-		$this->display_name = $row['handle'];
-		$this->last_access_date = $row['loggedin'];
-		$this->last_modified_date = $row['written'];
-		$this->reputation = $row['points'];
-		$this->user_id = $row['userid'];
-		// $this->website_url = $row['website'];
+		$this->user_id = $row['user_id'];
 	}
-
+/*
 	static function get_query($ids, $id_type='user')
 	{
 		global $ID_TYPES;
@@ -74,14 +38,13 @@ class User
 	
 		$sort = process_sort(array("reputation", "creation", "name", "modified"));
 
-		/**/
+		
 		if(isset($_GET["fromdate"]))
 			$fromdate = process_date('fromdate');
 
 		if(isset($_GET["todate"]))
 			$todate = process_date('todate');
-		/**/
-
+		
 		if(isset($_GET["min"]))
 		{
 			$min = process_min_max($sort, 'min');
@@ -185,39 +148,7 @@ class User
 		return $query;
 	}
 
-
-
-	/**/
-
-	static function func($path)
-	{
-
-		echo "\n";
-		var_dump($_SERVER);
-		echo "\n";
-		var_dump($_GET);
-		echo "\n";
-		var_dump($path);
-		echo "\n";
-	}
-
-	/**/
-
-
-
-/** /
-	function __get($name)
-	{
-		switch ($name)
-			{
-				case "user_type" :
-				echo $this->$user_type;
-				break;
-			}
-	}
-
 /**/
-
 }
 	
 

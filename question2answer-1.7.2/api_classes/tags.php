@@ -1,6 +1,8 @@
 <?php
 header("access-control-allow-origin: *");
 require_once "./api_classes/util.php";
+require_once "./api_classes/answers.php";
+require_once "./api_classes/comments.php";
 require_once "./api_classes/questions.php";
 header('Content-Type: application/json');//JSON-formatting
 
@@ -10,7 +12,7 @@ header('Content-Type: application/json');//JSON-formatting
 */
 class Tag
 {
-
+	const ID = "tags";
 	var $tagid;
 	var $name;
 	var $count;
@@ -24,6 +26,17 @@ class Tag
 		$this->activity = $row['activity'];
 	}
 
+	/**
+	IDs = a list of possible tags.
+	output = all posts (questions, comments, and answers)
+	which contain the tags.
+	*/
+	static function get_all_post_IDs($IDs)
+	{
+		return "SELECT DISTINCT T.`postid` FROM `qa_tagwords` T JOIN `qa_words` W ON T.`wordid` = W.`wordid` AND W.`word` IN (".$IDs.")";
+	}
+	
+	/*
 	static function get_query($ids, $id_type='tag')
 	{
 		global $ID_TYPES;
@@ -35,14 +48,12 @@ class Tag
 	
 		$sort = process_sort(array("popular", "activity", "name"));
 
-		/**/
 		if(isset($_GET["fromdate"]))
 			$fromdate = process_date('fromdate');
 
 		if(isset($_GET["todate"]))
 			$todate = process_date('todate');
-		/**/
-
+		
 		if(isset($_GET["min"]))
 		{
 			$min = process_min_max($sort, 'min');
@@ -146,39 +157,7 @@ class Tag
 		return $query;
 	}
 
-
-
-	/**/
-
-	static function func($path)
-	{
-
-		echo "\n";
-		var_dump($_SERVER);
-		echo "\n";
-		var_dump($_GET);
-		echo "\n";
-		var_dump($path);
-		echo "\n";
-	}
-
-	/**/
-
-
-
-/** /
-	function __get($name)
-	{
-		switch ($name)
-			{
-				case "user_type" :
-				echo $this->$user_type;
-				break;
-			}
-	}
-
 /**/
-
 }
 	
 
