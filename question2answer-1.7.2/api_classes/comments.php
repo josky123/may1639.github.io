@@ -1,14 +1,14 @@
 <?php
-define("IN_MYBB", 1);
 header("access-control-allow-origin: *");
+header('Content-Type: application/json');
+
 require_once "./api_classes/util.php";
-require_once "./api_classes/users.php";
-require_once "./api_classes/questions.php";
+
 require_once "./api_classes/answers.php";
 require_once "./api_classes/posts.php";
+require_once "./api_classes/questions.php";
 require_once "./api_classes/tags.php";
-
-header('Content-Type: application/json');//JSON-formatting
+require_once "./api_classes/users.php";
 
 /**
 * The class for an answer.

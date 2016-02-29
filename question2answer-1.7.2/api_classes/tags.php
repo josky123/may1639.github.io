@@ -1,10 +1,13 @@
 <?php
 header("access-control-allow-origin: *");
+header('Content-Type: application/json');
+
 require_once "./api_classes/util.php";
+
 require_once "./api_classes/answers.php";
 require_once "./api_classes/comments.php";
+require_once "./api_classes/posts.php";
 require_once "./api_classes/questions.php";
-header('Content-Type: application/json');//JSON-formatting
 
 /**
 * The class for a Tag.
@@ -13,6 +16,7 @@ header('Content-Type: application/json');//JSON-formatting
 class Tag
 {
 	const ID = "tags";
+
 	var $tagid;
 	var $name;
 	var $count;

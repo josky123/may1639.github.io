@@ -1,9 +1,6 @@
 <?php
-define("IN_MYBB", 1);
 header("access-control-allow-origin: *");
-header('Content-Type: application/json');//JSON-formatting
-
-$ID_TYPES = array('user' => 'userid', 'answer' => 'postid', 'question' => 'postid', 'comment' => 'postid', 'post' => 'postid', 'tag' => 'wordid');
+header('Content-Type: application/json');
 
 function paginate_query($query, $n)
 {
@@ -154,21 +151,5 @@ function process_ids($ids)
 	if(!preg_match("/^[0-9]+(;[0-9]+)*$/", $ids))
 		return_error(404, 'no method found with this name', 'no_method');
 }
-
-/**/
-
-
-
-
-// function func($path)
-// {
-// 	echo "\n";
-// 	var_dump($_SERVER);
-// 	echo "\n";
-// 	var_dump($_GET);
-// 	echo "\n";
-// 	var_dump($path);
-// 	echo "\n";
-// }
 
 ?>

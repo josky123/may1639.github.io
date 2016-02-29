@@ -8,6 +8,12 @@ Author:	Robert Kloster
 */
 
 /**
+This section is needed in order to begin formatting into gzipped JSON.
+*/
+header("access-control-allow-origin: *");
+header('Content-Type: application/json');
+
+/**
 This file contains the logic of many shared/common functions.
 */
 require_once "./api_classes/util.php";
@@ -15,23 +21,18 @@ require_once "./api_classes/util.php";
 /**
 These files contain the logic of each data object.
 */
-require_once "./api_classes/users.php";
-require_once "./api_classes/questions.php";
 require_once "./api_classes/answers.php";
 require_once "./api_classes/comments.php";
 require_once "./api_classes/posts.php";
+require_once "./api_classes/questions.php";
 require_once "./api_classes/tags.php";
+require_once "./api_classes/users.php";
 
 /**
 This file will allow us to execute database queries off of Q2A's code.
 */
 require './qa-include/qa-base.php';
 
-/**
-This section is needed in order to begin formatting into gzipped JSON.
-*/
-header("access-control-allow-origin: *");
-header('Content-Type: application/json');
 
 /**
 The path must be specified; api.php holds no functionality without a path.
@@ -40,10 +41,6 @@ if(!isset($_SERVER['PATH_INFO']))
 {
 	return_error(404, 'path', 'path_missing');
 }
-
-
-
-//confirm that the call is valid among the different data types
 
 /**
 $output_type will store the ID of the datatype that will be returned.
@@ -75,7 +72,10 @@ elseif($query = Post::get_query($_SERVER['PATH_INFO']))
 {
 	$output_type = Post::ID;
 }
-
+elseif($query = User::get_query($_SERVER['PATH_INFO']))
+{
+	$output_type = User::ID;
+}
 
 /**
 Return error if none of the currently implemented API callsets can handle
@@ -85,7 +85,6 @@ if(!$output_type)
 {
 	return_error(404, 'call', 'call_not_supported');
 }
-
 
 /**
 The results of running the MySQL query.
@@ -129,6 +128,12 @@ while($row = mysqli_fetch_array($results, MYSQL_ASSOC))
 		case Post::ID:
 			$tuple = new Post($row);
 			break;
+
+		case User::ID:
+			$tuple = new User($row);
+			break;
+
+
 	}
 	
 	/**

@@ -1,13 +1,13 @@
 <?php
-define("IN_MYBB", 1);
 header("access-control-allow-origin: *");
-require_once "./api_classes/util.php";
-require_once "./api_classes/users.php";
-require_once "./api_classes/questions.php";
-require_once "./api_classes/comments.php";
-require_once "./api_classes/tags.php";
+header('Content-Type: application/json');
 
-header('Content-Type: application/json');//JSON-formatting
+require_once "./api_classes/util.php";
+
+require_once "./api_classes/comments.php";
+require_once "./api_classes/questions.php";
+require_once "./api_classes/tags.php";
+require_once "./api_classes/users.php";
 
 /**
 The class for an answer.

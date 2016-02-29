@@ -1,17 +1,14 @@
 <?php
-define("IN_MYBB", 1);
 header("access-control-allow-origin: *");
+header('Content-Type: application/json');
+
 require_once "./api_classes/util.php";
+
 require_once "./api_classes/comments.php";
-require_once "./api_classes/users.php";
 require_once "./api_classes/tags.php";
+require_once "./api_classes/users.php";
 
-header('Content-Type: application/json');//JSON-formatting
 
-/**
-* The class for an answer.
-* Data for this comes from: https://api.stackexchange.com/docs/types/answer
-*/
 class Post
 {
 	
@@ -205,9 +202,9 @@ WHERE
 	/**
 	This function is where most of the important stuff happens;
 	this function forms the main MySQL query to be executed.
-		IDs = the formatted IDs to be considered in the main query.
-			defaults to empty.
-		$ID_type = the specific type of the objects that IDs refers to.
+		$IDs = the formatted IDs to be considered in the main query.
+			defaults to false.
+		$ID_type = the specific type of the objects that $IDs refers to.
 			defaults to the same object type as the one being returned.
 	*/
 	static function main_query($IDs = false, $ID_type = self::ID)
