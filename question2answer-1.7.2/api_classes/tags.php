@@ -10,13 +10,11 @@ require_once "./api_classes/posts.php";
 require_once "./api_classes/questions.php";
 
 /**
-* The class for a Tag.
-* Data for this comes from: https://api.stackexchange.com/docs/types/tag
+The class for a Tag.
+Data for this comes from: https://api.stackexchange.com/docs/types/tag
 */
 class Tag
 {
-	const ID = "tags";
-
 	var $tagid;
 	var $name;
 	var $count;
@@ -29,6 +27,10 @@ class Tag
 		$this->count = $row['count'];
 		$this->activity = $row['activity'];
 	}
+
+	const ID = "tags";
+
+	const BASE_QUERY = "";
 
 	/**
 	IDs = a list of possible tags.
