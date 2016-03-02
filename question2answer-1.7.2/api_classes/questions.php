@@ -69,22 +69,22 @@ class Question
 	the qa_posts table.
 	*/
 	const BASE_QUERY = "SELECT
-	Q.`selchildid`	AS	`accepted_answer_id`,
-	Q.`acount`	AS	`answer_count`,
-	Q.`content`	AS	`body`,
-	Q.`created`	AS	`creation_date`,
-	Q.`downvotes`	AS	`down_vote_count`,
-	(Q.`selchildid`) IS NOT NULL	AS	`is_answered`,
-	IFNULL(Q.`updated`, Q.`created`)	AS	`last_activity_date`,
-	Q.`updated`	AS	`last_edit_date`,
-	Q.`userid`	AS	`owner`,
-	Q.`postid`	AS	`question_id`,
-	Q.`netvotes`	AS	`score`,
-	Q.`notify`	AS	`share_link`,
-	Q.`tags`	AS	`tags`,
-	Q.`title`	AS	`title`,
-	Q.`upvotes`	AS	`up_vote_count`,
-	Q.`views`	AS	`view_count`
+	Q.`selchildid` AS `accepted_answer_id`,
+	Q.`acount` AS `answer_count`,
+	Q.`content` AS `body`,
+	Q.`created` AS `creation_date`,
+	Q.`downvotes` AS `down_vote_count`,
+	(0 < Q.`acount`) AS `is_answered`,
+	IFNULL(Q.`updated`, Q.`created`) AS `last_activity_date`,
+	Q.`updated` AS `last_edit_date`,
+	Q.`userid` AS `owner`,
+	Q.`postid` AS `question_id`,
+	Q.`netvotes` AS `score`,
+	Q.`notify` AS `share_link`,
+	Q.`tags` AS `tags`,
+	Q.`title` AS `title`,
+	Q.`upvotes` AS `up_vote_count`,
+	Q.`views` AS `view_count`
 FROM
 	`qa_posts` Q
 WHERE
