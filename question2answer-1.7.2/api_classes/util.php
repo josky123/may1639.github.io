@@ -1,9 +1,6 @@
 <?php
-define("IN_MYBB", 1);
 header("access-control-allow-origin: *");
-header('Content-Type: application/json');//JSON-formatting
-
-$ID_TYPES = array('user' => 'userid', 'answer' => 'postid', 'question' => 'postid', 'comment' => 'postid', 'post' => 'postid', 'tag' => 'tagid');
+header('Content-Type: application/json');
 
 function paginate_query($query, $n)
 {
@@ -49,6 +46,43 @@ function return_error($id, $message, $name)
 	ob_start('ob_gzhandler');
 	exit(json_encode($return_value));
 }
+
+
+/**
+This function takes in a string of semicolon-delimited numeric IDs,
+sorts them, removes duplicates, and formats them to be compatible
+with MySQL.
+*/
+function format_numeric_IDs($IDs)
+{
+	$IDs = preg_replace("/\s+/", "", $IDs);
+	$IDs = preg_replace("/;+/", ";", $IDs);
+	$IDs = trim($IDs, ";");
+	$IDs = explode(";", $IDs);
+	sort($IDs);
+	$IDs = array_unique($IDs);
+	$IDs = implode(",", $IDs);
+	return $IDs;
+}
+
+/**
+This function takes in a string of semicolon-delimited alphabetic IDs,
+sorts them, removes duplicates, and formats them to be compatible
+with MySQL.
+*/
+function format_alphabetic_IDs($IDs)
+{
+	$IDs = preg_replace("/\s+/", " ", $IDs);
+	$IDs = preg_replace("/\s*;+\s*/", ";", $IDs);
+	$IDs = trim($IDs, ";");
+	$IDs = explode(";", $IDs);
+	sort($IDs);
+	$IDs = array_unique($IDs);
+	$IDs = "'".implode("','", $IDs)."'";
+	return $IDs;
+}
+
+
 
 /**/
 
@@ -117,21 +151,5 @@ function process_ids($ids)
 	if(!preg_match("/^[0-9]+(;[0-9]+)*$/", $ids))
 		return_error(404, 'no method found with this name', 'no_method');
 }
-
-/**/
-
-
-
-
-// function func($path)
-// {
-// 	echo "\n";
-// 	var_dump($_SERVER);
-// 	echo "\n";
-// 	var_dump($_GET);
-// 	echo "\n";
-// 	var_dump($path);
-// 	echo "\n";
-// }
 
 ?>
