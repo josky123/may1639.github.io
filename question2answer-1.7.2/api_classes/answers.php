@@ -258,7 +258,7 @@ WHERE
 				break;
 			
 			case Tag::ID:
-				$query = self::base_ID_query(Tag::get_all_post_IDs($IDs));
+				$query = self::base_ID_query(Tag::get_generic_post_IDs($IDs));
 			default:
 				break;
 		}

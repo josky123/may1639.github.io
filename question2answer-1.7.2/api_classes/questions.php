@@ -120,7 +120,7 @@ WHERE
 	}
 
 	/**
-	This function takes in a semicolon-delimited formatted list of question IDs
+	This function takes in a comma-delimited formatted list of question IDs
 	and returns a query which returns only the valid question IDs.
 	*/
 	static function get_valid_IDs($IDs)
@@ -129,7 +129,7 @@ WHERE
 	}
 
 	/**
-	This function takes in a semicolon-delimited formatted list of question IDs
+	This function takes in a comma-delimited formatted list of question IDs
 	and returns a query which returns only the parent IDs of the valid question IDs.
 	*/
 	static function get_valid_parent_IDs($IDs)
@@ -138,7 +138,7 @@ WHERE
 	}
 
 	/**
-	This function takes in a semicolon-delimited formatted list of question IDs
+	This function takes in a comma-delimited formatted list of question IDs
 	and returns a query which returns only the user IDs of the valid question IDs.
 	*/
 	static function get_valid_user_IDs($IDs)
@@ -260,7 +260,7 @@ WHERE
 				break;
 			
 			case Tag::ID:
-				$query = self::base_ID_query(Tag::get_all_post_IDs($IDs));
+				$query = self::base_ID_query(Tag::get_generic_post_IDs($IDs));
 			default:
 				break;
 		}

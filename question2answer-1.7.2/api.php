@@ -76,6 +76,10 @@ elseif($query = User::get_query($_SERVER['PATH_INFO']))
 {
 	$output_type = User::ID;
 }
+elseif($query = Tag::get_query($_SERVER['PATH_INFO']))
+{
+	$output_type = Tag::ID;
+}
 
 /**
 Return error if none of the currently implemented API callsets can handle
@@ -85,6 +89,7 @@ if(!$output_type)
 {
 	return_error(404, 'call', 'call_not_supported');
 }
+
 
 /**
 The results of running the MySQL query.
@@ -133,7 +138,9 @@ while($row = mysqli_fetch_array($results, MYSQL_ASSOC))
 			$tuple = new User($row);
 			break;
 
-
+		case Tag::ID:
+			$tuple = new Tag($row);
+			break;
 	}
 	
 	/**
