@@ -1,5 +1,13 @@
 initialize();
-function searchTest()
+function keycheck(event)
+{
+    var key = event.keyCode;
+    if (key == 13)
+    {
+        search();
+    }
+}
+function search()
 {
     var searchText = document.getElementById("searchBox").value;
     var pageBox = document.getElementById("pageBox");
@@ -50,23 +58,27 @@ function searchTest()
                     var p = document.createElement("a");
                     p.href = "#";
                     p.innerHTML = " \\ " + pagedata[x].PName;
-                    p.setAttribute("onclick", "nav(\"" + pagedata[x].PName + "\", " + pagedata[x].PID + ", \"" + "Package" + "\")" );
+                    p.setAttribute("onclick", "nav(\"" + pagedata[x].PName + "\", " + pagedata[x].PID + ", \"" + "Package" + "\")");
                     links[links.length] = p;
                 }
                 if (pagedata[x].hasOwnProperty("TName")) {
                     var c = document.createElement("a");
                     c.href = "#";
                     c.innerHTML = " \\ " + pagedata[x].TName;
-                    c.setAttribute("onclick", "nav(\"" + pagedata[x].TName + "\", " + pagedata[x].TID + ", \"" + "Class" + "\")" );
+                    c.setAttribute("onclick", "nav(\"" + pagedata[x].TName + "\", " + pagedata[x].TID + ", \"" + "Class" + "\")");
                     links[links.length] = c;
                 }
                 if (pagedata[x].hasOwnProperty("MName")) {
                     var m = document.createElement("a");
                     m.href = "#";
                     m.innerHTML = " \\ " + pagedata[x].MName + "(" + pagedata[x].Args + ")";
-                    m.setAttribute("onclick", "nav(\"" + pagedata[x].MName + "\", " + pagedata[x].MID + ", \"" + "Method" + "\")" );
+                    m.setAttribute("onclick", "nav(\"" + pagedata[x].MName + "\", " + pagedata[x].MID + ", \"" + "Method" + "\")");
+                    m.addEventListener("onclick", function(){
+                        nav(pagedata[x].MName, pagedata[x].MID, "Method", links);
+                    });
                     links[links.length] = m;
                 }
+                console.log(links[0]);
                 for (var j = 0; j < links.length; j++) {
                     pageBox.appendChild(links[j]);
                 }
@@ -76,7 +88,7 @@ function searchTest()
         });
 }
 
-function nav(name, id, type)
+function nav(name, id, type, links)
 {
     // Update navigation links. If name is in list, delete elements after name.
     // If not found, append name to list of links.
@@ -86,18 +98,39 @@ function nav(name, id, type)
     var found = false;
     var nodes = navigation.childNodes;
     var index;
-    for (var x = 0; x < numchild; x++)
+    if (links == null)
     {
-        child = nodes[x];
-        if (found) {
-            navigation.removeChild(nodes[index]);
+        for (var x = 0; x < numchild; x++)
+        {
+            child = nodes[x];
+            if (found) {
+                navigation.removeChild(nodes[index]);
+            }
+            else if (child.name == name) {
+                found = true;
+                index = x + 1;
+            }
         }
-        else if (child.name == name) {
-            found = true;
-            index = x + 1;
+        if (!found) {
+            var a = document.createElement("a");
+            a.name = name;
+            a.href = "#";
+            a.setAttribute("onclick", "nav(\"" + name + "\", " + id + ", " + "\"" + type + "\")" );
+            a.innerHTML = " \\ " + name;
+            navigation.appendChild(a);
+        }    
+    }else
+    {
+        console.log(links);
+        for (var x = 1; x < numchild; x++)
+        {
+            child = nodes[1];
+            navigation.removeChild(child);
         }
-    }
-    if (!found) {
+        for (var x = 0; x < links.length; x++)
+        {
+            navigation.appendChild(links[x]);
+        }
         var a = document.createElement("a");
         a.name = name;
         a.href = "#";
@@ -105,6 +138,7 @@ function nav(name, id, type)
         a.innerHTML = " \\ " + name;
         navigation.appendChild(a);
     }
+    
 
     // Update pages
     var pages = document.getElementById("pages");

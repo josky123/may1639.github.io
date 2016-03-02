@@ -1,0 +1,11 @@
+<input type="file" id="upload" onchange="test()">
+<script>
+function test()
+{
+	var file = document.getElementById("upload").files[0];
+	if (file != null)
+	{
+		alert("Name: " + file.name + " Size: " + file.size);
+	}
+}
+</script>
