@@ -29,8 +29,8 @@ while( $xml->read() ){
 		$body = $xml->getAttribute('Body');
 		//$partsB = preg_split('/\s+/', $body);
 		
+		/*
 		$title = str_replace("'","\'",$title);
-		
 		
 		$sql = "INSERT INTO Posts (Post_ID, Title, Body, URL) VALUES (".$id.", '".$title."', 'TEMP VALUE', '".$url."')";
 
@@ -39,7 +39,7 @@ while( $xml->read() ){
 		} else {
 			echo "Error: " . $sql . "<br>" . $conn->error;
 		}
-		
+		*/
 		
 		for( $i = 0; $i < count($parts); $i++ ){
 			//echo $parts[$i];
@@ -48,6 +48,9 @@ while( $xml->read() ){
 			$part = str_replace("'","\'",$parts[$i]);
 			//echo $part;
 			
+			$sql = "SELECT Word_ID FROM Dictionary WHERE Word = \"goober\"";
+			
+			/*
 			$sql = "INSERT INTO Dictionary (Word) VALUES ('".$part."')";
 
 			if ($conn->query($sql) === TRUE) {
@@ -55,7 +58,7 @@ while( $xml->read() ){
 			} else {
 				echo "Error: " . $sql . "<br>" . $conn->error;
 			}
-			
+			*/
 		}
 		
 		/*
