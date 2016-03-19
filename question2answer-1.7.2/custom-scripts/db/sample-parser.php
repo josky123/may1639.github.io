@@ -58,15 +58,15 @@ while( $xml->read() ){
 		
 		$url = "http://stackoverflow.com/questions/".$id;		
 		
-	
+/*	
 		//Perform the main query.
-		$sql = "INSERT INTO Posts (Post_ID, PostTypeId, CreationDate, Score, Body, LastEditorUserId, LastEditorDisplayName, LastEditDate, LastActivityDate, CommentCount, URL) VALUES (".$id.", ".$postType.", '".$creationDate."', ".$score.", 'BODY'".", ".$lastEditorId.", '".$LastEditorName."', '".$lastEditDate."', '".$lastActivityDate."', ".$commentCount.", '".$url."')";
+		$sql = "INSERT INTO Posts (Post_ID, PostTypeId, CreationDate, Score, Body, LastEditorUserId, LastEditDate, LastActivityDate, CommentCount, URL) VALUES (".$id.", ".$postType.", '".$creationDate."', ".$score.", 'BODY'".", ".$lastEditorId.", '".$lastEditDate."', '".$lastActivityDate."', ".$commentCount.", '".$url."')";
 
 		if ($conn->query($sql) === TRUE) {
 			//echo "New record for ID ".$id." was created successfully<br>";
 		} else {
-			//echo "<br>Error: " . $sql . "<br>" . $conn->error."<br>";
-			//echo $title."<br><br>";
+			echo "<br>Error: " . $sql . "<br>" . $conn->error."<br>";
+			echo $title."<br><br>";
 		}
 		
 		
@@ -109,18 +109,8 @@ while( $xml->read() ){
 		else if( $postType == 2 ){
 			
 			updatePostTableFieldForId( $conn, "ParentId", "'".$parentId."'", $id );
-			
-			/*
-			$sql = "UPDATE posts SET ParentId='".$parentId."' WHERE Post_ID=".$id;
-			
-			if ($conn->query($sql) === TRUE) {
-				//echo "Successfully updated ParentId for post ID ".$id."<br>";
-			} else {
-				//echo "<br>Error: " . $sql . "<br>" . $conn->error."<br>";
-				//echo $parentId."<br><br>";
-			}		*/	
 		}
-	
+*/
 /*
 		if( $tags ){
 			//echo $id." | ".htmlspecialchars_decode("&lt;")."<br>";
@@ -139,7 +129,7 @@ while( $xml->read() ){
 			}
 		}
 */
-/*
+
 		if( $postType == 1 ){
 			
 			echo $id." : ".$title."<br>";
@@ -161,91 +151,54 @@ while( $xml->read() ){
 				if( $partChar == '?' || $partChar == '.' || $partChar == '!' ){
 					$part = substr( $part, 0, -1 );
 				}
-			
-				// Check whether a new word or a duplicate.
-				$dupFlag = false;
-				$checkQuery = "SELECT Word_ID FROM Dictionary WHERE Word='".$part."'";
 				
-				$check = $conn->query($checkQuery);
-
-				if( $check == TRUE && $check->num_rows > 0 ){
-					$dupFlag = true;
-				}
-				
-				//$dupCheck = ($dupFlag) ? 'true' : 'false';
-				//echo $dupCheck."<br>";
+				// Check whether a word is duplicate
+				$dupFlag = checkDuplicateDictionaryEntry( $conn, $part );
 				
 				// If it is a new word
 				if( !$dupFlag ){
 					
 					// Add the new Word to the dictionary
-					$sql = "INSERT INTO Dictionary (Word) VALUES ('".$part."')";					
+					addWordToDictionary( $conn, $part );
 
-					if ($conn->query($sql) === TRUE) {
-						echo "New record for word \"".$part."\" was created successfully<br>";
-					} else {
-						echo "Error: " . $sql . "<br>" . $conn->error;
-					}
 					
-					// Add the word to the Dictionary/post join table
+					// Add the new word to the Dictionary/post join table
+					$resId = getWordId( $conn, $part );
+					addWordIdToJoinTable( $conn, $resId, $id, false );				
+				} 
+				// Check if the duplicate word needs to be added to the dictionary/post join table for this post ID.
+				else{
 					
 					// First, get the word id.
-					$checkQuery = "SELECT Word_ID FROM Dictionary WHERE Word='".$part."'";
-					$check = $conn->query($checkQuery);					
-
-					// If the result is okay...
-					if( $check == TRUE && $check->num_rows > 0){
-						$resRow = $check->fetch_row();
-						$resId = $resRow[0];
+					$resId = getWordId( $conn, $part );
+					
+					if( !checkDuplicateJoinEntry( $conn, $resId, $id ) ){
 						
+						addWordIdToJoinTable( $conn, $resId, $id, false );		
+					}
+					
+/*					
+					$checkQuery = "SELECT * FROM Dictionary_Post_Join WHERE Word_ID=".$resId." AND Post_ID=".$id;
+					$check = $conn->query($checkQuery);			
+						
+					// Check Success and Add if not already added
+					if( $check != TRUE ){
+						echo "Error: " . $checkQuery . "<br>" . $conn->error."<br>";
+					}
+					else if( $check->num_rows == 0 ){
+							
 						// Add to the join table
 						$sql = "INSERT INTO Dictionary_Post_Join (Word_ID, Post_ID, Is_Tag) VALUES (".$resId.", ".$id.", 0)";					
 
 						if ($conn->query($sql) === TRUE) {
 							echo "New JOIN record for word ID ".$resId." and post ID ".$id." was created successfully<br>";
 						} else {
-							echo "Error: " . $sql . "<br>" . $conn->error;
-						}							
-					}
-				} 
-				// Check if the duplicate word needs to be added to the dictionary/post join table for this post ID.
-				else{
-					
-					// First, get the word id.
-					$checkQuery = "SELECT Word_ID FROM Dictionary WHERE Word='".$part."'";
-					$check = $conn->query($checkQuery);					
-
-					// If the result is okay...
-					if( $check == TRUE && $check->num_rows > 0){
-						$resRow = $check->fetch_row();
-						$resId = $resRow[0];
-						echo $resId."<br>";
-						// Check if the dictionary/post join entry needs to be added.
-						
-						$checkQuery = "SELECT * FROM Dictionary_Post_Join WHERE Word_ID=".$resId." AND Post_ID=".$id;
-						$check = $conn->query($checkQuery);	
-// TODO		Why are dups not being added?			
-						
-						// Check Success and Add if not already added
-						if( $check != TRUE ){
-							echo "Error: " . $checkQuery . "<br>" . $conn->error."<br>";
-						}
-						else if( $check->num_rows == 0 ){
-							
-							// Add to the join table
-							$sql = "INSERT INTO Dictionary_Post_Join (Word_ID, Post_ID, Is_Tag) VALUES (".$resId.", ".$id.", 0)";					
-
-							if ($conn->query($sql) === TRUE) {
-								echo "New JOIN record for word ID ".$resId." and post ID ".$id." was created successfully<br>";
-							} else {
-								echo "Error: " . $sql . "<br>" . $conn->error."<br>";
-							}	
-						}
-					}
+							echo "Error: " . $sql . "<br>" . $conn->error."<br>";
+						}	
+					}*/
 				}
 			}
-		}
-	*/	
+		}	
 		
 /*
 		echo $id."<br>".$body."<br>";
@@ -304,6 +257,70 @@ function updatePostTableFieldForId( $conn, $field, $value, $id ){
 		echo "<br>Error: " . $sql . "<br>" . $conn->error."<br>";
 		echo $value."<br><br>";
 	}
+}
+
+function getWordId( $conn, $word ){
+	
+	$checkQuery = "SELECT Word_ID FROM Dictionary WHERE Word='".$word."'";
+	$check = $conn->query($checkQuery);					
+
+	// If the result is okay...
+	if( $check == TRUE && $check->num_rows > 0){
+		$resRow = $check->fetch_row();
+		return $resRow[0];
+	}
+	
+	return 0;
+}
+
+function addWordToDictionary( $conn, $word ){
+	$sql = "INSERT INTO Dictionary (Word) VALUES ('".$word."')";					
+
+	if ($conn->query($sql) === TRUE) {
+		echo "New record for word \"".$word."\" was created successfully<br>";
+	} else {
+		echo "Error: " . $sql . "<br>" . $conn->error;
+	}	
+}
+
+function addWordIdToJoinTable( $conn, $wordId, $postId, $isTag ){
+	
+	$binary = ($isTag) ? 1 : 0;
+	$sql = "INSERT INTO Dictionary_Post_Join (Word_ID, Post_ID, Is_Tag) VALUES (".$wordId.", ".$postId.", ".$binary.")";					
+
+	if ($conn->query($sql) === TRUE) {
+		echo "New JOIN record for word ID ".$wordId." and post ID ".$postId." was created successfully<br>";
+	} else {
+		echo "Error: " . $sql . "<br>" . $conn->error;
+	}
+}
+
+function checkDuplicateJoinEntry( $conn, $wordId, $postId ){
+	
+	$checkQuery = "SELECT * FROM Dictionary_Post_Join WHERE Word_ID=".$wordId." AND Post_ID=".$postId;
+	$check = $conn->query($checkQuery);			
+						
+	// Check Success and Add if not already added
+	if( $check != TRUE ){
+		echo "Error: " . $checkQuery . "<br>" . $conn->error."<br>";
+		return false;
+	}
+	else if( $check->num_rows > 0 ){
+		return true;
+	}
+	return false;
+}
+
+function checkDuplicateDictionaryEntry( $conn, $word ){
+	
+	$checkQuery = "SELECT Word_ID FROM Dictionary WHERE Word='".$word."'";
+	$check = $conn->query($checkQuery);
+
+	if( $check == TRUE && $check->num_rows > 0 ){
+		return true;
+	}
+	
+	return false;
 }
 
 ?>
