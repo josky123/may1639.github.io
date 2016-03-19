@@ -58,7 +58,7 @@ while( $xml->read() ){
 		
 		$url = "http://stackoverflow.com/questions/".$id;		
 		
-/*		
+	
 		//Perform the main query.
 		$sql = "INSERT INTO Posts (Post_ID, PostTypeId, CreationDate, Score, Body, LastEditorUserId, LastEditorDisplayName, LastEditDate, LastActivityDate, CommentCount, URL) VALUES (".$id.", ".$postType.", '".$creationDate."', ".$score.", 'BODY'".", ".$lastEditorId.", '".$LastEditorName."', '".$lastEditDate."', '".$lastActivityDate."', ".$commentCount.", '".$url."')";
 
@@ -72,57 +72,25 @@ while( $xml->read() ){
 		
 		//Perform conditional queries.
 		if( $ownerId ){
-			
-			$sql = "UPDATE posts SET OwnerUserId=".$ownerId." WHERE Post_ID=".$id;
-			
-			if ($conn->query($sql) === TRUE) {
-				//echo "Successfully updated OwnerUserId for post ID ".$id."<br>";
-			} else {
-				//echo "<br>Error: " . $sql . "<br>" . $conn->error."<br>";
-				//echo $ownerId."<br><br>";
-			}
+			updatePostTableFieldForId( $conn, "OwnerUserId", $ownerId, $id );
 		}
 		
 		if( $ownerName ){
-			
-			$sql = "UPDATE posts SET OwnerDisplayName='".$ownerName."' WHERE Post_ID=".$id;
-			
-			if ($conn->query($sql) === TRUE) {
-				//echo "Successfully updated OwnerDisplayName for post ID ".$id."<br>";
-			} else {
-				//echo "<br>Error: " . $sql . "<br>" . $conn->error."<br>";
-				//echo $ownerName."<br><br>";
-			}
+			updatePostTableFieldForId( $conn, "OwnerDisplayName", "'".$ownerName."'", $id );
 		}
-		
+
 		if( $communityOwnedDate ){
-			
-			$sql = "UPDATE posts SET CommunityOwnedDate='".$communityOwnedDate."' WHERE Post_ID=".$id;
-			
-			if ($conn->query($sql) === TRUE) {
-				//echo "Successfully updated CommunityOwnedDate for post ID ".$id."<br>";
-			} else {
-				//echo "<br>Error: " . $sql . "<br>" . $conn->error."<br>";
-				//echo $communityOwnedDate."<br><br>";
-			}
+			updatePostTableFieldForId( $conn, "CommunityOwnedDate", "'".$communityOwnedDate."'", $id );
 		}
 		
 		if( $lastEditorName ){
-			
-			$sql = "UPDATE posts SET LastEditorDisplayName='".$lastEditorName."' WHERE Post_ID=".$id;
-			
-			if ($conn->query($sql) === TRUE) {
-				//echo "Successfully updated LastEditorDisplayName for post ID ".$id."<br>";
-			} else {
-				//echo "<br>Error: " . $sql . "<br>" . $conn->error."<br>";
-				//echo $lastEditorName."<br><br>";
-			}
+			updatePostTableFieldForId( $conn, "LastEditorDisplayName", "'".$lastEditorName."'", $id );
 		}
-		
-		
+			
 		//Several Additional Fields to consider with dealing with type 1.
 		if( $postType == 1 ){
 			
+			// Three fields guaranteed for a type 1 post
 			$sql = "UPDATE posts SET ViewCount=".$viewCount.", Title='".$title."', AnswerCount=".$answerCount.", FavoriteCount=".$favCount." WHERE Post_ID=".$id;
 			
 			if ($conn->query($sql) === TRUE) {
@@ -130,23 +98,19 @@ while( $xml->read() ){
 			} else {
 				//echo "<br>Error: " . $sql . "<br>" . $conn->error."<br><br>";
 			}
-
+			
+			// Accepted Answer Id in the case of an accepted answer
 			if( $acceptedId ){
-				
-				$sql = "UPDATE posts SET AcceptedAnswerId='".$acceptedId."' WHERE Post_ID=".$id;
-				
-				if ($conn->query($sql) === TRUE) {
-					//echo "Successfully updated AcceptedAnswerId for post ID ".$id."<br>";
-				} else {
-					//echo "<br>Error: " . $sql . "<br>" . $conn->error."<br>";
-					//echo $acceptedId."<br><br>";
-				}
-			}			
+				updatePostTableFieldForId( $conn, "AcceptedAnswerId", "'".$acceptedId."'", $id );
+			}	
 		}
-		
+
 		//Fields necessary only for type 2.
 		else if( $postType == 2 ){
 			
+			updatePostTableFieldForId( $conn, "ParentId", "'".$parentId."'", $id );
+			
+			/*
 			$sql = "UPDATE posts SET ParentId='".$parentId."' WHERE Post_ID=".$id;
 			
 			if ($conn->query($sql) === TRUE) {
@@ -154,15 +118,36 @@ while( $xml->read() ){
 			} else {
 				//echo "<br>Error: " . $sql . "<br>" . $conn->error."<br>";
 				//echo $parentId."<br><br>";
-			}			
+			}		*/	
 		}
-*/		
-
+	
+/*
+		if( $tags ){
+			//echo $id." | ".htmlspecialchars_decode("&lt;")."<br>";
+			//echo (string)$tags;
+			//echo "&lt;c#&gt;&lt;winforms&gt;&lt;type-conversion&gt;&lt;opacity&gt;<br>";
+			
+			$tags = str_replace("<"," ",$tags);
+			$tags = str_replace(">"," ",$tags);
+			$tags = substr( $tags, 1, -1 );
+			$tags = preg_split('/\s+/', $tags);
+			//print_r($tags);
+			//echo "<br>";
+			
+			for( $i = 0; $i < count($tags); $i++ ){
+				
+			}
+		}
+*/
+/*
 		if( $postType == 1 ){
 			
 			echo $id." : ".$title."<br>";
 			//print_r($parts);
 			//echo "<br>";
+			
+			
+// ADD each tag to the dictionary	
 			
 			//Add each word in the title to the dictionary.
 			for( $i = 0; $i < count($parts); $i++ ){
@@ -260,7 +245,7 @@ while( $xml->read() ){
 				}
 			}
 		}
-		
+	*/	
 		
 /*
 		echo $id."<br>".$body."<br>";
@@ -308,5 +293,17 @@ while( $xml->read() ){
 
 $xml->close();
 $conn->close();
+
+function updatePostTableFieldForId( $conn, $field, $value, $id ){
+	
+	$sql = "UPDATE posts SET ".$field."=".$value." WHERE Post_ID=".$id;
+			
+	if ($conn->query($sql) === TRUE) {
+		echo "Successfully updated ".$field." for post ID ".$id."<br>";
+	} else {
+		echo "<br>Error: " . $sql . "<br>" . $conn->error."<br>";
+		echo $value."<br><br>";
+	}
+}
 
 ?>
