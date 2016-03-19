@@ -42,6 +42,9 @@ while( $xml->read() ){
 		
 		// Title Requires Special Treatment
 		$title = $xml->getAttribute('Title');
+		// Removes apostrophes that may screw up the SQL call.
+		$title = str_replace("'","''",$title);
+		//$title = htmlspecialchars_decode($title, ENT_QUOTES | ENT_HTML401 );
 		$parts = preg_split('/\s+/', $title);
 		
 		$tags = $xml->getAttribute('Tags');
@@ -52,12 +55,8 @@ while( $xml->read() ){
 		
 		$url = "http://stackoverflow.com/questions/".$id;		
 		
-		// Removes apostrophes that may screw up the SQL call.
-		$title = str_replace("'","\'",$title);
 		
-		/*
-		 * Perform the main query.
-		 */
+		//Perform the main query.
 		$sql = "INSERT INTO Posts (Post_ID, PostTypeId, CreationDate, Score, Body, LastEditorUserId, LastEditorDisplayName, LastEditDate, LastActivityDate, CommentCount, URL) VALUES (".$id.", ".$postType.", '".$creationDate."', ".$score.", 'BODY'".", ".$lastEditorId.", '".$LastEditorName."', '".$lastEditDate."', '".$lastActivityDate."', ".$commentCount.", '".$url."')";
 
 		if ($conn->query($sql) === TRUE) {
@@ -67,9 +66,8 @@ while( $xml->read() ){
 			//echo $title."<br><br>";
 		}
 		
-		/*
-		 * Perform conditional queries.
-		 */
+		
+		//Perform conditional queries.
 		if( $ownerId ){
 			
 			$sql = "UPDATE posts SET OwnerUserId=".$ownerId." WHERE Post_ID=".$id;
@@ -118,9 +116,8 @@ while( $xml->read() ){
 			}
 		}
 		
-		/*
-		 * Several Additional Fields to consider with dealing with type 1.
-		 */
+		
+		//Several Additional Fields to consider with dealing with type 1.
 		if( $postType == 1 ){
 			
 			$sql = "UPDATE posts SET ViewCount=".$viewCount.", Title='".$title."', AnswerCount=".$answerCount.", FavoriteCount=".$favCount." WHERE Post_ID=".$id;
@@ -143,9 +140,8 @@ while( $xml->read() ){
 				}
 			}			
 		}
-		/*
-		 * Fields necessary only for type 2.
-		 */
+		
+		//Fields necessary only for type 2.
 		else if( $postType == 2 ){
 			
 			$sql = "UPDATE posts SET ParentId='".$parentId."' WHERE Post_ID=".$id;
@@ -158,34 +154,45 @@ while( $xml->read() ){
 			}			
 		}
 		
-		/*
-		 * Add each word in the title to the dictionary.
-		 */
-		 
-		for( $i = 0; $i < count($parts); $i++ ){
+
+		if( $postType == 1 ){
 			
-			$part = str_replace("'","\'",$parts[$i]);
-			$dupFlag = false;
-			$checkQuery = "SELECT Word_ID FROM Dictionary WHERE Word='".$part."'";
+			echo $id." : ".$title."<br>";
+			//print_r($parts);
+			//echo "<br>";
 			
-			$check = $conn->query($checkQuery);
-			if( $check == TRUE ){
-				if( mysql_num_rows($check) > 0 ){
+			//Add each word in the title to the dictionary.
+			for( $i = 0; $i < count($parts); $i++ ){
+
+				$part = $parts[$i];
+				$partLen = strlen($part);
+				$partChar = $part[$partLen-1];
+				
+				if( $partChar == '?' || $partChar == '.' || $partChar == '!' ){
+					$part = substr( $part, 0, -1 );
+				}
+			
+				$dupFlag = false;
+				$checkQuery = "SELECT Word_ID FROM Dictionary WHERE Word='".$part."'";
+				
+				$check = $conn->query($checkQuery);
+
+				if( $check->num_rows > 0 ){
 					$dupFlag = true;
 				}
-			}
-			else{
-				echo "Error: " . $sql . "<br>" . $conn->error."<br><br>";
-			}
-			
-			if( !$dupFlag ){
 				
-				$sql = "INSERT INTO Dictionary (Word) VALUES ('".$part."')";
+				//$dupCheck = ($dupFlag) ? 'true' : 'false';
+				//echo $dupCheck."<br>";
+				
+				if( !$dupFlag ){
+					
+					$sql = "INSERT INTO Dictionary (Word) VALUES ('".$part."')";
 
-				if ($conn->query($sql) === TRUE) {
-					echo "New record for word \"".$part."\" was created successfully<br>";
-				} else {
-					echo "Error: " . $sql . "<br>" . $conn->error;
+					if ($conn->query($sql) === TRUE) {
+						echo "New record for word \"".$part."\" was created successfully<br>";
+					} else {
+						echo "Error: " . $sql . "<br>" . $conn->error;
+					}
 				}
 			}
 		}
