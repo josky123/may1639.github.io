@@ -20,43 +20,43 @@ class Question
 	/**
 	These are the variable names of the data object.
 	*/
-	var $accepted_answer_id;
-	var $answer_count;
+	var $question_id;
+	var $owner;
+	var $title;
 	var $body;
-	var $creation_date;
+	var $tags;
+	var $view_count;
+	var $up_vote_count;
 	var $down_vote_count;
+	var $score;
+	var $answer_count;
 	var $is_answered;
+	var $accepted_answer_id;
+	var $creation_date;
 	var $last_activity_date;
 	var $last_edit_date;
-	var $owner;
-	var $question_id;
-	var $score;
-	var $tags;
-	var $title;
-	var $up_vote_count;
-	var $view_count;
-
+	
 	/**
 	This is the constructor for an instance of this object.
 	The input parameter should be a row returned from the MySQL query.
 	*/
 	function __construct($row)
 	{
-		$this->accepted_answer_id = $row['accepted_answer_id'];
-		$this->answer_count = $row['answer_count'];
+		$this->accepted_answer_id = (integer) $row['accepted_answer_id'];
+		$this->answer_count = (integer) $row['answer_count'];
 		$this->body = $row['body'];
 		$this->creation_date = $row['creation_date'];
-		$this->down_vote_count = $row['down_vote_count'];
-		$this->is_answered = $row['is_answered'];
+		$this->down_vote_count = (integer) $row['down_vote_count'];
+		$this->is_answered = (boolean) $row['is_answered'];
 		$this->last_activity_date = $row['last_activity_date'];
 		$this->last_edit_date = $row['last_edit_date'];
-		$this->owner = $row['owner'];
-		$this->question_id = $row['question_id'];
-		$this->score = $row['score'];
+		$this->owner = (integer) $row['owner'];
+		$this->question_id = (integer) $row['question_id'];
+		$this->score = (integer) $row['score'];
 		$this->tags = $row['tags'];
 		$this->title = $row['title'];
-		$this->up_vote_count = $row['up_vote_count'];
-		$this->view_count = $row['view_count'];
+		$this->up_vote_count = (integer) $row['up_vote_count'];
+		$this->view_count = (integer) $row['view_count'];
 	}
 
 	/**
@@ -337,47 +337,9 @@ WHERE
 		$query .= " ".$order;
 
 		/**
-		The default pagesize (by StackExchange standards) is 30.
-		*/
-		$pagesize = 30;
-
-		/**
-		Process custom-specified pagesize, if defined.
-		*/
-		if(isset($_GET['pagesize']))
-		{
-			/**
-			Determine pagesize validity
-			*/
-			if(!is_numeric($_GET['pagesize']))
-				return_error(400, 'pagesize', 'bad_parameter');
-		
-			/**
-			1 <= pagesize <= 100
-			*/
-			$pagesize = max(1, min(100, $_GET["pagesize"]));
-		}
-
-		/**
-		The default page (by StackExchange standards) is 1.
-		*/
-		$page = 1;
-	
-		/**
-		Process custom-specified page, if defined.
-		*/
-		if(isset($_GET["page"]))
-		{
-			if(!is_numeric($_GET['page']))
-				return_error(400, 'page', 'bad_parameter');
-
-			$page = $_GET["page"];
-		}
-
-		/**
 		Augment query with limit and offset operators.
 		*/
-		$query .= " LIMIT ".$pagesize." OFFSET ".($page - 1) * $pagesize;
+		$query .= paginate_query();
 
 		return $query;
 	}
