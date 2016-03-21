@@ -42,11 +42,8 @@ if(!isset($_SERVER['PATH_INFO']))
 	return_error(404, 'path', 'path_missing');
 }
 
-/** /
-var_dump($_GET);
+var_dump(qualifiers());
 exit(0);
-/**/
-
 
 /**
 $output_type will store the ID of the datatype that will be returned.

@@ -86,4 +86,54 @@ function format_alphabetic_IDs($IDs)
 	$IDs = "'".implode("','", $IDs)."'";
 	return $IDs;
 }
+
+/**
+This function takes in an array and removes all numeric indexed elements from it.
+*/
+function remove_numeric_indexes($array)
+{
+	foreach ($array as $key => $value)
+		if (is_int($key) === true)
+			unset($array[$key]);
+	return $array;
+}
+
+function qualifiers()
+{
+	$conditions = $_GET['conditions'];
+	preg_match("|<[^>]+>(.*)</[^>]+>|U", $conditions);
+	$conditions = $_GET['conditions'];
+	
+	//matches all valid variable qualifiers.
+	$regex = "~(?<negate>-)?(?<variable>[a-zA-Z_]+):(?<args>(?:\"[^\"]*\")|(?:[^\"\s]*))(?=(?:\s+)|(?:$))~";
+	
+	preg_match_all($regex, $conditions, $match, PREG_SET_ORDER);
+	
+	foreach ($match as &$qualifier)
+	{
+		$qualifier = remove_numeric_indexes($qualifier);
+
+		//negate should contain a boolean for whether or not we should negate the condition.
+		$qualifier['negate'] = (bool) !empty($qualifier['negate']);
+		
+		//gets rid of the clinging quote marks.
+		$qualifier['args'] = trim($qualifier['args'], "\"");
+
+
+		//BEGIN SEARCH FOR TYPE STUFF.
+
+
+		//This is used to determine whether or not it's a range-type.
+		preg_match("~\s*(?<arg1>\S+\s*\S*)(?<!\.\.)\s*\.\.\s*(?!\.\.)(?<arg2>\S*\s*\S+)\s*~", $qualifier['args'], $args);
+
+
+		$args = remove_numeric_indexes($args);
+		
+		$qualifier['args'] = $args;
+	}
+
+	return $match;
+}
+
+
 ?>
