@@ -26,16 +26,89 @@ class Question
 	var $body;
 	var $tags;
 	var $view_count;
+	var $score;
 	var $up_vote_count;
 	var $down_vote_count;
-	var $score;
 	var $answer_count;
 	var $is_answered;
 	var $accepted_answer_id;
 	var $creation_date;
 	var $last_activity_date;
 	var $last_edit_date;
-	
+
+/**/
+
+	static function get_variable_mapping()
+	{
+		return array(
+			"question_id" => "Q.`question_id`",
+			"owner" => "Q.`owner`",
+			"title" => "Q.`title`",
+			"body" => "Q.`body`",
+			"tags" => "Q.`tags`",
+			"view_count" => "Q.`view_count`",
+			"score" => "Q.`score`",
+			"up_vote_count" => "Q.`up_vote_count`",
+			"down_vote_count" => "Q.`down_vote_count`",
+			"answer_count" => "Q.`answer_count`",
+			"is_answered" => "Q.`is_answered`",
+			"accepted_answer_id" => "Q.`accepted_answer_id`",
+			"creation_date" => "Q.`creation_date`",
+			"last_activity_date" => "Q.`last_activity_date`",
+			"last_edit_date" => "Q.`last_edit_date`"
+			);
+	}
+
+/**/
+
+	static function get_boolean_vars()
+	{
+		return array(
+			"is_answered"
+		);
+	}
+
+/**/
+
+	static function get_datetime_vars()
+	{
+		return array(
+			"creation_date",
+			"last_activity_date",
+			"last_edit_date"
+		);
+	}
+
+/**/
+
+	static function get_integer_vars()
+	{
+		return array(
+			"question_id",
+			"owner",
+			"view_count",
+			"score",
+			"up_vote_count",
+			"down_vote_count",
+			"answer_count",
+			"accepted_answer_id"
+		);
+	}
+
+/**/
+
+	static function get_string_vars()
+	{
+		return array(
+			"title",
+			"body",
+			"tags"
+		);
+	}
+
+/**/
+
+
 	/**
 	This is the constructor for an instance of this object.
 	The input parameter should be a row returned from the MySQL query.
@@ -157,6 +230,7 @@ WHERE
 	*/
 	static function get_query($path)
 	{
+
 		$IDs = false;
 
 		/**
@@ -223,8 +297,6 @@ WHERE
 		return false;
 	}
 
-	
-
 	/**
 	This function is where most of the important stuff happens;
 	this function forms the main MySQL query to be executed.
@@ -267,6 +339,32 @@ WHERE
 
 		$query = "SELECT Q.* FROM (".$query.") Q WHERE TRUE";
 		
+		/**
+		START WORK HERE!!!
+		START WORK HERE!!!
+		START WORK HERE!!!
+		START WORK HERE!!!
+		START WORK HERE!!!
+		START WORK HERE!!!
+		START WORK HERE!!!
+		START WORK HERE!!!
+		START WORK HERE!!!
+		*/
+		// parse_conditions(self::get_boolean_vars(), self::get_datetime_vars(), self::get_integer_vars(), self::get_string_vars(), self::get_variable_mapping());
+		// exit(0);
+		/**
+		START WORK HERE!!!
+		START WORK HERE!!!
+		START WORK HERE!!!
+		START WORK HERE!!!
+		START WORK HERE!!!
+		START WORK HERE!!!
+		START WORK HERE!!!
+		START WORK HERE!!!
+		START WORK HERE!!!
+		*/
+
+
 		if(isset($_GET['fromdate']))
 		{
 			$query .= " AND Q.creation_date >= FROM_UNIXTIME(".$_GET['fromdate'].")";

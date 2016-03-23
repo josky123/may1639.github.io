@@ -16,6 +16,7 @@ header('Content-Type: application/json');
 /**
 This file contains the logic of many shared/common functions.
 */
+
 require_once "./api_classes/util.php";
 
 /**
@@ -41,9 +42,6 @@ if(!isset($_SERVER['PATH_INFO']))
 {
 	return_error(404, 'path', 'path_missing');
 }
-
-var_dump(qualifiers());
-exit(0);
 
 /**
 $output_type will store the ID of the datatype that will be returned.
