@@ -132,13 +132,17 @@ while( $xml->read() ){
 
 		if( $postType == 1 ){
 			
-			echo $id." : ".$title."<br>";
+			//echo $id." : ".$title."<br>";
 			//print_r($parts);
 			//echo "<br>";
 			
 			
 // ADD each tag to the dictionary	
 			
+			// Add each word in the title to the dictionary.
+			addWordsToDictionaryAndJoin($conn, $parts, $id, false);
+			
+			/*
 			//Add each word in the title to the dictionary.
 			for( $i = 0; $i < count($parts); $i++ ){
 
@@ -176,28 +180,9 @@ while( $xml->read() ){
 						
 						addWordIdToJoinTable( $conn, $resId, $id, false );		
 					}
-					
-/*					
-					$checkQuery = "SELECT * FROM Dictionary_Post_Join WHERE Word_ID=".$resId." AND Post_ID=".$id;
-					$check = $conn->query($checkQuery);			
-						
-					// Check Success and Add if not already added
-					if( $check != TRUE ){
-						echo "Error: " . $checkQuery . "<br>" . $conn->error."<br>";
-					}
-					else if( $check->num_rows == 0 ){
-							
-						// Add to the join table
-						$sql = "INSERT INTO Dictionary_Post_Join (Word_ID, Post_ID, Is_Tag) VALUES (".$resId.", ".$id.", 0)";					
-
-						if ($conn->query($sql) === TRUE) {
-							echo "New JOIN record for word ID ".$resId." and post ID ".$id." was created successfully<br>";
-						} else {
-							echo "Error: " . $sql . "<br>" . $conn->error."<br>";
-						}	
-					}*/
 				}
 			}
+			*/
 		}	
 		
 /*
@@ -321,6 +306,48 @@ function checkDuplicateDictionaryEntry( $conn, $word ){
 	}
 	
 	return false;
+}
+
+function addWordsToDictionaryAndJoin($conn, $wordArray, $id, $tagTrue){
+			
+	//Add each word to the dictionary.
+	for( $i = 0; $i < count($wordArray); $i++ ){
+
+		$part = $wordArray[$i];
+		$partLen = strlen($part);
+		$partChar = $part[$partLen-1];
+				
+		// TODO
+		// Remove end punctuation, probably need a function here at some point.
+		if( $partChar == '?' || $partChar == '.' || $partChar == '!' ){
+			$part = substr( $part, 0, -1 );
+		}
+		
+		// Check whether a word is duplicate
+		$dupFlag = checkDuplicateDictionaryEntry( $conn, $part );
+				
+		// If it is a new word
+		if( !$dupFlag ){
+				
+			// Add the new Word to the dictionary
+			addWordToDictionary( $conn, $part );
+			
+			// Add the new word to the Dictionary/post join table
+			$resId = getWordId( $conn, $part );
+			addWordIdToJoinTable( $conn, $resId, $id, false );				
+		} 
+		// Check if the duplicate word needs to be added to the dictionary/post join table for this post ID.
+		else{
+					
+			// First, get the word id.
+			$resId = getWordId( $conn, $part );
+					
+			if( !checkDuplicateJoinEntry( $conn, $resId, $id ) ){
+						
+			addWordIdToJoinTable( $conn, $resId, $id, false );		
+			}
+		}
+	}
 }
 
 ?>
