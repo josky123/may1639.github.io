@@ -9,7 +9,6 @@ require_once "./api_classes/comments.php";
 require_once "./api_classes/tags.php";
 require_once "./api_classes/users.php";
 
-
 /**
 The class for a question.
 This datatype was inspired by: https://api.stackexchange.com/docs/types/question
