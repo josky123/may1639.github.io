@@ -58,7 +58,7 @@ while( $xml->read() ){
 		
 		$url = "http://stackoverflow.com/questions/".$id;		
 		
-/*	
+	
 		//Perform the main query.
 		$sql = "INSERT INTO Posts (Post_ID, PostTypeId, CreationDate, Score, Body, LastEditorUserId, LastEditDate, LastActivityDate, CommentCount, URL) VALUES (".$id.", ".$postType.", '".$creationDate."', ".$score.", 'BODY'".", ".$lastEditorId.", '".$lastEditDate."', '".$lastActivityDate."', ".$commentCount.", '".$url."')";
 
@@ -110,79 +110,23 @@ while( $xml->read() ){
 			
 			updatePostTableFieldForId( $conn, "ParentId", "'".$parentId."'", $id );
 		}
-*/
-/*
-		if( $tags ){
-			//echo $id." | ".htmlspecialchars_decode("&lt;")."<br>";
-			//echo (string)$tags;
-			//echo "&lt;c#&gt;&lt;winforms&gt;&lt;type-conversion&gt;&lt;opacity&gt;<br>";
-			
-			$tags = str_replace("<"," ",$tags);
-			$tags = str_replace(">"," ",$tags);
-			$tags = substr( $tags, 1, -1 );
-			$tags = preg_split('/\s+/', $tags);
-			//print_r($tags);
-			//echo "<br>";
-			
-			for( $i = 0; $i < count($tags); $i++ ){
-				
-			}
-		}
-*/
 
 		if( $postType == 1 ){
 			
-			//echo $id." : ".$title."<br>";
-			//print_r($parts);
+			//echo $id." ";
+			//print_r("tags"
+			
+			// Format and Add each tag to the dictionary
+			$tags2 = str_replace("<"," ",$tags);
+			$tags2 = str_replace(">"," ",$tags2);
+			$tags2 = substr( $tags2, 1, -1 );
+			$tags2 = preg_split('/\s+/', $tags2);
+			//print_r($tags2);
 			//echo "<br>";
-			
-			
-// ADD each tag to the dictionary	
+			addWordsToDictionaryAndJoin($conn, $tags2, $id, true);
 			
 			// Add each word in the title to the dictionary.
 			addWordsToDictionaryAndJoin($conn, $parts, $id, false);
-			
-			/*
-			//Add each word in the title to the dictionary.
-			for( $i = 0; $i < count($parts); $i++ ){
-
-				$part = $parts[$i];
-				$partLen = strlen($part);
-				$partChar = $part[$partLen-1];
-				
-				// TODO
-				// Remove end punctuation, probably need a function here at some point.
-				if( $partChar == '?' || $partChar == '.' || $partChar == '!' ){
-					$part = substr( $part, 0, -1 );
-				}
-				
-				// Check whether a word is duplicate
-				$dupFlag = checkDuplicateDictionaryEntry( $conn, $part );
-				
-				// If it is a new word
-				if( !$dupFlag ){
-					
-					// Add the new Word to the dictionary
-					addWordToDictionary( $conn, $part );
-
-					
-					// Add the new word to the Dictionary/post join table
-					$resId = getWordId( $conn, $part );
-					addWordIdToJoinTable( $conn, $resId, $id, false );				
-				} 
-				// Check if the duplicate word needs to be added to the dictionary/post join table for this post ID.
-				else{
-					
-					// First, get the word id.
-					$resId = getWordId( $conn, $part );
-					
-					if( !checkDuplicateJoinEntry( $conn, $resId, $id ) ){
-						
-						addWordIdToJoinTable( $conn, $resId, $id, false );		
-					}
-				}
-			}
-			*/
 		}	
 		
 /*
@@ -231,19 +175,42 @@ while( $xml->read() ){
 
 $xml->close();
 $conn->close();
+echo "Parsing Complete.";
 
+/*
+ * Updates the given field to a new value for the given post ID.
+ * 
+ * @param $conn
+ *			The database connection to use.
+ * @param $field
+ *			The field to update.
+ * @param $value
+ *			The new value to assign.
+ * @param $id
+ *			The ID of the post to update.
+ */
 function updatePostTableFieldForId( $conn, $field, $value, $id ){
 	
 	$sql = "UPDATE posts SET ".$field."=".$value." WHERE Post_ID=".$id;
 			
 	if ($conn->query($sql) === TRUE) {
-		echo "Successfully updated ".$field." for post ID ".$id."<br>";
+		//echo "Successfully updated ".$field." for post ID ".$id."<br>";
 	} else {
 		echo "<br>Error: " . $sql . "<br>" . $conn->error."<br>";
 		echo $value."<br><br>";
 	}
 }
 
+/*
+ * Returns the ID of the given word.
+ * 
+ * @param $conn
+ *			The database connection to use.
+ * @param $word
+ *			The word to identify.
+ * @return
+ *			The word ID if it exists.  0 otherwise.
+ */
 function getWordId( $conn, $word ){
 	
 	$checkQuery = "SELECT Word_ID FROM Dictionary WHERE Word='".$word."'";
@@ -258,28 +225,58 @@ function getWordId( $conn, $word ){
 	return 0;
 }
 
+/*
+ * Adds the given word to the dictionary.
+ * 
+ * @param $conn
+ *			The database connection to use.
+ * @param $word
+ *			The word to add.
+ */
 function addWordToDictionary( $conn, $word ){
 	$sql = "INSERT INTO Dictionary (Word) VALUES ('".$word."')";					
 
 	if ($conn->query($sql) === TRUE) {
-		echo "New record for word \"".$word."\" was created successfully<br>";
+		//echo "New record for word \"".$word."\" was created successfully<br>";
 	} else {
 		echo "Error: " . $sql . "<br>" . $conn->error;
 	}	
 }
 
+/*
+ * Adds the indicated word ID to the JOIN table for the given post ID and appropriate tag status.
+ * 
+ * @param $conn
+ *			The database connection to use.
+ * @param $wordId
+ *			The ID of the word being joined.
+ * @param $postId
+ *			The ID of the post being joined.
+ * @param $isTag
+ *			Boolean indicating whether or not the given word is a tag for the post.
+ */
 function addWordIdToJoinTable( $conn, $wordId, $postId, $isTag ){
 	
 	$binary = ($isTag) ? 1 : 0;
 	$sql = "INSERT INTO Dictionary_Post_Join (Word_ID, Post_ID, Is_Tag) VALUES (".$wordId.", ".$postId.", ".$binary.")";					
 
 	if ($conn->query($sql) === TRUE) {
-		echo "New JOIN record for word ID ".$wordId." and post ID ".$postId." was created successfully<br>";
+		//echo "New JOIN record for word ID ".$wordId." with post ID ".$postId." and tag status ".$binary." was created successfully<br>";
 	} else {
 		echo "Error: " . $sql . "<br>" . $conn->error;
 	}
 }
 
+/*
+ * Determines whether the given word and post join already exists.
+ * 
+ * @param $conn
+ *			The database connection to use.
+ * @param $wordId
+ *			The ID of the word to check.
+ * @param $postId
+ *			The ID of the post to check.
+ */
 function checkDuplicateJoinEntry( $conn, $wordId, $postId ){
 	
 	$checkQuery = "SELECT * FROM Dictionary_Post_Join WHERE Word_ID=".$wordId." AND Post_ID=".$postId;
@@ -296,6 +293,14 @@ function checkDuplicateJoinEntry( $conn, $wordId, $postId ){
 	return false;
 }
 
+/*
+ * Determines whether or not the given word is already in the dictionary.  Can most likely be replaced by getWordId.
+ * 
+ * @param $conn
+ *			The database connection to use.
+ * @param $word
+ *			The word to check.
+ */
 function checkDuplicateDictionaryEntry( $conn, $word ){
 	
 	$checkQuery = "SELECT Word_ID FROM Dictionary WHERE Word='".$word."'";
@@ -308,6 +313,18 @@ function checkDuplicateDictionaryEntry( $conn, $word ){
 	return false;
 }
 
+/*
+ * Adds the indicated words to the dictionary and joins them to the given post with the appropriate tag status.
+ * 
+ * @param $conn
+ *			The database connection to use.
+ * @param $wordArray
+ *			An array of words to add to the dictionary and to JOIN to the given post.
+ * @param $id
+ *			The ID of the post being joined.
+ * @param $tagTrue
+ *			Boolean indicating whether or not the words in the array are tags for the given post.
+ */
 function addWordsToDictionaryAndJoin($conn, $wordArray, $id, $tagTrue){
 			
 	//Add each word to the dictionary.
@@ -316,6 +333,8 @@ function addWordsToDictionaryAndJoin($conn, $wordArray, $id, $tagTrue){
 		$part = $wordArray[$i];
 		$partLen = strlen($part);
 		$partChar = $part[$partLen-1];
+		
+		//echo "Post ID ".$id." and word ".$part." with tag binary ".$tagTrue."<br>";
 				
 		// TODO
 		// Remove end punctuation, probably need a function here at some point.
@@ -334,7 +353,7 @@ function addWordsToDictionaryAndJoin($conn, $wordArray, $id, $tagTrue){
 			
 			// Add the new word to the Dictionary/post join table
 			$resId = getWordId( $conn, $part );
-			addWordIdToJoinTable( $conn, $resId, $id, false );				
+			addWordIdToJoinTable( $conn, $resId, $id, $tagTrue );				
 		} 
 		// Check if the duplicate word needs to be added to the dictionary/post join table for this post ID.
 		else{
@@ -344,7 +363,7 @@ function addWordsToDictionaryAndJoin($conn, $wordArray, $id, $tagTrue){
 					
 			if( !checkDuplicateJoinEntry( $conn, $resId, $id ) ){
 						
-			addWordIdToJoinTable( $conn, $resId, $id, false );		
+				addWordIdToJoinTable( $conn, $resId, $id, $tagTrue );		
 			}
 		}
 	}
