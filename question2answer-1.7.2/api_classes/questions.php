@@ -339,32 +339,16 @@ WHERE
 
 		$query = "SELECT Q.* FROM (".$query.") Q WHERE TRUE";
 		
-		/**
-		START WORK HERE!!!
-		START WORK HERE!!!
-		START WORK HERE!!!
-		START WORK HERE!!!
-		START WORK HERE!!!
-		START WORK HERE!!!
-		START WORK HERE!!!
-		START WORK HERE!!!
-		START WORK HERE!!!
-		*/
-		// parse_conditions(self::get_boolean_vars(), self::get_datetime_vars(), self::get_integer_vars(), self::get_string_vars(), self::get_variable_mapping());
-		// exit(0);
-		/**
-		START WORK HERE!!!
-		START WORK HERE!!!
-		START WORK HERE!!!
-		START WORK HERE!!!
-		START WORK HERE!!!
-		START WORK HERE!!!
-		START WORK HERE!!!
-		START WORK HERE!!!
-		START WORK HERE!!!
-		*/
 
 
+		$conditional_requirements = parse_conditions(self::get_boolean_vars(), self::get_datetime_vars(), self::get_integer_vars(), self::get_string_vars(), self::get_variable_mapping());
+
+		if(!empty($conditional_requirements))
+		{
+			$query .= " AND ".$conditional_requirements;
+		}
+
+		/*
 		if(isset($_GET['fromdate']))
 		{
 			$query .= " AND Q.creation_date >= FROM_UNIXTIME(".$_GET['fromdate'].")";
@@ -374,7 +358,8 @@ WHERE
 		{
 			$query .= " AND Q.creation_date <= FROM_UNIXTIME(".$_GET['todate'].")";
 		}
-		
+		*/
+
 		if(isset($_GET['tagged']))
 		{
 			$tagged = explode(";", $_GET['tagged']);
@@ -386,7 +371,7 @@ WHERE
 
 		$sort_type = "activity";
 		$sort_name = "Q.last_activity_date";
-
+		/*
 		$var_to_col_mapping = array('activity' => 'Q.last_activity_date', 'creation' => 'Q.creation_date', 'votes' => 'Q.score');
 		
 		if(isset($_GET['sort']))
@@ -424,6 +409,7 @@ WHERE
 			$query .= " AND ".$sort_name." <= ".$max;
 		}
 
+		*/
 		$query .= " ORDER BY ".$sort_name;
 		
 		$order = "desc";
@@ -438,6 +424,9 @@ WHERE
 		Augment query with limit and offset operators.
 		*/
 		$query .= paginate_query();
+
+		// var_dump($query);
+		// exit();
 
 		return $query;
 	}
