@@ -24,15 +24,70 @@ class Comment
 	var $post_id;
 	var $score;
 	
+/**/
+
+	static function get_variable_mapping()
+	{
+		return array(
+			"body" => "C.`body`",
+			"comment_id" => "C.`comment_id`",
+			"creation_date" => "C.`creation_date`",
+			"edited" => "C.`edited`",
+			"owner" => "C.`owner`",
+			"post_id" => "C.`post_id`",
+			"score" => "C.`score`"
+			);
+	}
+
+/**/
+
+	static function get_boolean_vars()
+	{
+		return array(
+			"edited"
+		);
+	}
+
+/**/
+
+	static function get_datetime_vars()
+	{
+		return array(
+			"creation_date"
+		);
+	}
+
+/**/
+
+	static function get_integer_vars()
+	{
+		return array(
+			"comment_id",
+			"owner",
+			"post_id",
+			"score"
+		);
+	}
+
+/**/
+
+	static function get_string_vars()
+	{
+		return array(
+			"body"
+		);
+	}
+
+
 	function __construct($row)
 	{
 		$this->body = $row['body'];
-		$this->comment_id = $row['comment_id'];
+		$this->comment_id = (integer) $row['comment_id'];
 		$this->creation_date = $row['creation_date'];
-		$this->edited = $row['edited'];
-		$this->owner = $row['owner'];
-		$this->post_id = $row['post_id'];
-		$this->score = $row['score'];
+		$this->edited = (boolean) $row['edited'];
+		$this->owner = (integer) $row['owner'];
+		$this->post_id = (integer) $row['post_id'];
+		$this->score = (integer) $row['score'];
 	}
 
 	const ID = "comments";
@@ -254,6 +309,14 @@ WHERE
 
 		$query = "SELECT C.* FROM (".$query.") C WHERE TRUE";
 		
+		$conditional_requirements = parse_conditions(self::get_boolean_vars(), self::get_datetime_vars(), self::get_integer_vars(), self::get_string_vars(), self::get_variable_mapping());
+
+		if(!empty($conditional_requirements))
+		{
+			$query .= " AND ".$conditional_requirements;
+		}
+
+/*
 		if(isset($_GET['fromdate']))
 		{
 			$query .= " AND C.creation_date >= FROM_UNIXTIME(".$_GET['fromdate'].")";
@@ -263,10 +326,10 @@ WHERE
 		{
 			$query .= " AND C.creation_date <= FROM_UNIXTIME(".$_GET['todate'].")";
 		}
-
+*/
 		$sort_type = "creation";
 		$sort_name = "C.`creation_date`";
-
+/*
 		$var_to_col_mapping = array('creation' => 'C.`creation_date`', 'votes' => 'C.`score`');
 		
 		if(isset($_GET['sort']))
@@ -303,7 +366,7 @@ WHERE
 			}
 			$query .= " AND ".$sort_name." <= ".$max;
 		}
-
+*/
 		$query .= " ORDER BY ".$sort_name;
 		
 		$order = "desc";
@@ -315,48 +378,10 @@ WHERE
 		$query .= " ".$order;
 
 		/**
-		The default pagesize (by StackExchange standards) is 30.
-		*/
-		$pagesize = 30;
-
-		/**
-		Process custom-specified pagesize, if defined.
-		*/
-		if(isset($_GET['pagesize']))
-		{
-			/**
-			Determine pagesize validity
-			*/
-			if(!is_numeric($_GET['pagesize']))
-				return_error(400, 'pagesize', 'bad_parameter');
-		
-			/**
-			1 <= pagesize <= 100
-			*/
-			$pagesize = max(1, min(100, $_GET["pagesize"]));
-		}
-
-		/**
-		The default page (by StackExchange standards) is 1.
-		*/
-		$page = 1;
-	
-		/**
-		Process custom-specified page, if defined.
-		*/
-		if(isset($_GET["page"]))
-		{
-			if(!is_numeric($_GET['page']))
-				return_error(400, 'page', 'bad_parameter');
-
-			$page = $_GET["page"];
-		}
-
-		/**
 		Augment query with limit and offset operators.
 		*/
-		$query .= " LIMIT ".$pagesize." OFFSET ".($page - 1) * $pagesize;
-
+		$query .= paginate_query();
+		
 		return $query;
 	}
 

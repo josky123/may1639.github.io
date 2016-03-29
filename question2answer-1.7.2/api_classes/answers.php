@@ -31,6 +31,57 @@ class Answer
 	var $score;
 	var $title;
 	var $up_vote_count;
+
+	static function get_variable_mapping()
+	{
+		return array(
+			"answer_id" => "A.`answer_id`",
+			"body" => "A.`body`",
+			"creation_date" => "A.`creation_date`",
+			"down_vote_count" => "A.`down_vote_count`",
+			"last_activity_date" => "A.`last_activity_date`",
+			"last_edit_date" => "A.`last_edit_date`",
+			"owner" => "A.`owner`",
+			"question_id" => "A.`question_id`",
+			"score" => "A.`score`",
+			"title" => "A.`title`",
+			"up_vote_count" => "A.`up_vote_count`"
+			);
+	}
+
+	static function get_boolean_vars()
+	{
+		return array();
+	}
+
+	static function get_datetime_vars()
+	{
+		return array(
+			"creation_date",
+			"last_activity_date",
+			"last_edit_date"
+		);
+	}
+
+	static function get_integer_vars()
+	{
+		return array(
+			"answer_id",
+			"down_vote_count",
+			"owner",
+			"question_id",
+			"score",
+			"up_vote_count"
+		);
+	}
+
+	static function get_string_vars()
+	{
+		return array(
+			"title",
+			"body"
+		);
+	}
 	
 	/**
 	This is the constructor for an instance of this object.
@@ -38,17 +89,17 @@ class Answer
 	*/
 	function __construct($row)
 	{
-		$this->answer_id = $row['answer_id'];
+		$this->answer_id = (integer) $row['answer_id'];
 		$this->body = $row['body'];
 		$this->creation_date = $row['creation_date'];
-		$this->down_vote_count = $row['down_vote_count'];
+		$this->down_vote_count = (integer) $row['down_vote_count'];
 		$this->last_activity_date = $row['last_activity_date'];
 		$this->last_edit_date = $row['last_edit_date'];
-		$this->owner = $row['owner'];
-		$this->question_id = $row['question_id'];
-		$this->score = $row['score'];
+		$this->owner = (integer) $row['owner'];
+		$this->question_id = (integer) $row['question_id'];
+		$this->score = (integer) $row['score'];
 		$this->title = $row['title'];
-		$this->up_vote_count = $row['up_vote_count'];
+		$this->up_vote_count = (integer) $row['up_vote_count'];
 	}
 
 
@@ -264,7 +315,14 @@ WHERE
 		}
 
 		$query = "SELECT A.* FROM (".$query.") A WHERE TRUE";
-		
+
+		$conditional_requirements = parse_conditions(self::get_boolean_vars(), self::get_datetime_vars(), self::get_integer_vars(), self::get_string_vars(), self::get_variable_mapping());
+
+		if(!empty($conditional_requirements))
+		{
+			$query .= " AND ".$conditional_requirements;
+		}
+/*
 		if(isset($_GET['fromdate']))
 		{
 			$query .= " AND A.creation_date >= FROM_UNIXTIME(".$_GET['fromdate'].")";
@@ -274,10 +332,10 @@ WHERE
 		{
 			$query .= " AND A.creation_date <= FROM_UNIXTIME(".$_GET['todate'].")";
 		}
-
+*/
 		$sort_type = "activity";
 		$sort_name = "A.last_activity_date";
-
+/*
 		$var_to_col_mapping = array('activity' => 'A.last_activity_date', 'creation' => 'A.creation_date', 'votes' => 'A.score');
 		
 		if(isset($_GET['sort']))
@@ -314,7 +372,7 @@ WHERE
 			}
 			$query .= " AND ".$sort_name." <= ".$max;
 		}
-
+*/
 		$query .= " ORDER BY ".$sort_name;
 		
 		$order = "desc";
@@ -326,47 +384,9 @@ WHERE
 		$query .= " ".$order;
 
 		/**
-		The default pagesize (by StackExchange standards) is 30.
-		*/
-		$pagesize = 30;
-
-		/**
-		Process custom-specified pagesize, if defined.
-		*/
-		if(isset($_GET['pagesize']))
-		{
-			/**
-			Determine pagesize validity
-			*/
-			if(!is_numeric($_GET['pagesize']))
-				return_error(400, 'pagesize', 'bad_parameter');
-		
-			/**
-			1 <= pagesize <= 100
-			*/
-			$pagesize = max(1, min(100, $_GET["pagesize"]));
-		}
-
-		/**
-		The default page (by StackExchange standards) is 1.
-		*/
-		$page = 1;
-	
-		/**
-		Process custom-specified page, if defined.
-		*/
-		if(isset($_GET["page"]))
-		{
-			if(!is_numeric($_GET['page']))
-				return_error(400, 'page', 'bad_parameter');
-
-			$page = $_GET["page"];
-		}
-
-		/**
 		Augment query with limit and offset operators.
 		*/
-		$query .= " LIMIT ".$pagesize." OFFSET ".($page - 1) * $pagesize;
+		$query .= paginate_query();
 
 		return $query;
 	}
