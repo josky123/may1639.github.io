@@ -4,6 +4,7 @@ $servername = "localhost";
 $username = "root";
 $password = "YamadaKun2016";
 $dbname = "Related_Posts";
+$fileName = "XMLTest.xml";
 
 // Create connection
 $conn = new mysqli($servername, $username, $password, $dbname);
@@ -16,9 +17,13 @@ else{
 }
 
 $xml = new XMLReader();
-$xml->open("./XMLTest.xml");
+
+if( !$xml->open($fileName) ){
+	die("Failed to open \"".$fileName."\". Program terminated.<br>");
+}
 
 while( $xml->read() ){
+
 
 	if( $xml->name == "row" ){
 		
@@ -47,7 +52,8 @@ while( $xml->read() ){
 		
 		// The body requires special treatment
 		$body = $xml->getAttribute('Body');		
-		//$body = htmlspecialchars_decode($body, ENT_QUOTES | ENT_HTML401 );
+		// Removes apostrophes that may screw up the SQL call.
+		//$body = str_replace("'","''",$body);
 		$partsB = preg_split('/\s+/', $body);
 		
 		$tags = $xml->getAttribute('Tags');
@@ -58,9 +64,16 @@ while( $xml->read() ){
 		
 		$url = "http://stackoverflow.com/questions/".$id;		
 		
+		// Checks for a duplicate entry
+		// TODO: In the future, it probably needs to update fields here rather than skipping them altogether.
+		if( checkDuplicatePostEntry( $conn, $id ) ){
+			echo "Duplicate for ID ".$id."<br>";
+			continue;
+		}
 	
 		//Perform the main query.
-		$sql = "INSERT INTO Posts (Post_ID, PostTypeId, CreationDate, Score, Body, LastEditorUserId, LastEditDate, LastActivityDate, CommentCount, URL) VALUES (".$id.", ".$postType.", '".$creationDate."', ".$score.", 'BODY'".", ".$lastEditorId.", '".$lastEditDate."', '".$lastActivityDate."', ".$commentCount.", '".$url."')";
+		$sql = "INSERT INTO Posts (Post_ID, PostTypeId, CreationDate, Score, Body, LastActivityDate, CommentCount, URL) VALUES (".$id.", ".$postType.", '".$creationDate."', ".$score.", 'BODY'".", '".$lastActivityDate."', ".$commentCount.", '".$url."')";
+		//$sql = "INSERT INTO Posts (Post_ID, PostTypeId, CreationDate, Score, Body, LastActivityDate, CommentCount, URL) VALUES (".$id.", ".$postType.", '".$creationDate."', ".$score.", '".$body."', '".$lastActivityDate."', ".$commentCount.", '".$url."')";
 
 		if ($conn->query($sql) === TRUE) {
 			//echo "New record for ID ".$id." was created successfully<br>";
@@ -83,9 +96,17 @@ while( $xml->read() ){
 			updatePostTableFieldForId( $conn, "CommunityOwnedDate", "'".$communityOwnedDate."'", $id );
 		}
 		
+		if( $lastEditorId ){
+			updatePostTableFieldForId( $conn, "LastEditorUserId", $lastEditorId, $id );
+		}
+		
 		if( $lastEditorName ){
 			updatePostTableFieldForId( $conn, "LastEditorDisplayName", "'".$lastEditorName."'", $id );
 		}
+		
+		if( $lastEditDate ){
+			updatePostTableFieldForId( $conn, "LastEditDate", "'".$lastEditDate."'", $id );
+		}	
 			
 		//Several Additional Fields to consider with dealing with type 1.
 		if( $postType == 1 ){
@@ -304,6 +325,26 @@ function checkDuplicateJoinEntry( $conn, $wordId, $postId ){
 function checkDuplicateDictionaryEntry( $conn, $word ){
 	
 	$checkQuery = "SELECT Word_ID FROM Dictionary WHERE Word='".$word."'";
+	$check = $conn->query($checkQuery);
+
+	if( $check == TRUE && $check->num_rows > 0 ){
+		return true;
+	}
+	
+	return false;
+}
+
+/*
+ * Determines whether or not the given post has already been parsed.
+ * 
+ * @param $conn
+ *			The database connection to use.
+ * @param $postId
+ *			The post to check.
+ */
+function checkDuplicatePostEntry( $conn, $postId ){
+	
+	$checkQuery = "SELECT * FROM Posts WHERE Post_ID=".$postId;
 	$check = $conn->query($checkQuery);
 
 	if( $check == TRUE && $check->num_rows > 0 ){
