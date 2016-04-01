@@ -34,16 +34,22 @@ public class Client
 //			System.out.println(pt.getFileName());
 //		}
 		
-		File root = new File("javasource");
-		FileWalker fw = new FileWalker(true, false);
-		fw.extractAll(root);
-		//fw.printData();
+		//File root = new File("javasource");
+//		FileWalker fw = new FileWalker(true, false);
+//		fw.extractAll(root);
+//		//fw.printData();
 		
-		DatabaseManager dm = new DatabaseManager(fw.getData());
-		dm.connect();
-		dm.buildDatabase();
-		dm.addData();
-		dm.close();
+		//System.out.println(args[0]);
+		ExtractJava ej = new ExtractJava(args[0], true, false);
+		ej.extractAll();
+		ej.printData();
+		
+		
+//		DatabaseManager dm = new DatabaseManager(ej.getData());
+//		dm.connect();
+//		dm.buildDatabase();
+//		dm.addData();
+//		dm.close();
 		
 		
 		

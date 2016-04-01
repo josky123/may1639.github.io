@@ -55,7 +55,8 @@ public class DatabaseManager
 //		String dbUrl = "jdbc:mysql://localhost/may1639_db?rewriteBatchedStatements=true";
 //		String user = "may1639";
 //		String pass = "9nbje09p";
-		String dbUrl = "jdbc:mysql://localhost:3306/source?rewriteBatchedStatements=true";
+		//String dbUrl = "jdbc:mysql://localhost:3306/source?rewriteBatchedStatements=true";
+		String dbUrl = "jdbc:mysql://localhost:3306/source";
 		String user = "root";
 		String pass = "root";
 		

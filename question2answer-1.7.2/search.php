@@ -1,6 +1,6 @@
 <?php
-	ini_set('display_errors', 'On');
-	error_reporting(E_ALL | E_STRICT);
+	// ini_set('display_errors', 'On');
+	// error_reporting(E_ALL | E_STRICT);
 	require './qa-include/qa-base.php';
 
 	// Retrieve link info

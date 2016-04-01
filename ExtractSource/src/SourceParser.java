@@ -61,13 +61,13 @@ public class SourceParser
 		return parsedTypes;
 	}
 	
-	private String getSourceText(String path)
+	public String getSourceText(String path)
 	{
 		File sourceFile = new File(path);
 		return getSourceText(sourceFile);
 	}
 
-	private String getSourceText(File sourceFile)
+	public String getSourceText(File sourceFile)
 	{
 		try {
 			BufferedReader br = new BufferedReader(new FileReader(sourceFile));
