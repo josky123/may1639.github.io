@@ -153,6 +153,7 @@ and returns a string containing all the conditions properly formatted for the My
 function parse_conditions($boolean_vars, $datetime_vars, $integer_vars, $string_vars, $variable_mapping)
 {
 	
+	
 	// Quickly check if the "conditions" parameter is set.
 	if(!isset($_GET['conditions']) || empty($_GET['conditions']))
 	{
