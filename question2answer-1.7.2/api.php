@@ -1,4 +1,5 @@
 <?php
+
 /**
 This class is designed to provide 3rd party applications to be able to view
 the data stored on the Q2A site.
