@@ -20,6 +20,8 @@ This file contains the logic of many shared/common functions.
 
 require_once "./api_classes/util.php";
 
+exit(0);
+
 /**
 These files contain the logic of each data object.
 */

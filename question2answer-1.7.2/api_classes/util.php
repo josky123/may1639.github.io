@@ -2,6 +2,200 @@
 header("access-control-allow-origin: *");
 header('Content-Type: application/json');
 
+
+abstract class CallableData
+{
+	abstract protected function is_valid_call();
+	abstract protected function valid_bool_vars();
+	abstract protected function valid_int_vars();
+	abstract protected function valid_date_vars();
+	abstract protected function valid_string_vars();
+	abstract protected function valid_var_mappings();
+	abstract protected function get_base_call();
+	public function get_query()
+	{
+		if(!$this->is_valid_call())
+			return false;
+		$query = $this->get_base_call();
+		$filters = array();
+		if(!empty($_GET['conditions']))
+		{
+			$filters['conditions'] = array();
+
+			$valid_bool_vars = $this->valid_bool_vars();
+			if(!empty($valid_bool_vars))
+			{
+				foreach($valid_bool_vars as $key => $var_name)
+				{
+					$regex = "~(?:^\s*|\s+)(?<negate>-)?".$var_name.":(?<argument>(?i:true|false)|(?:\"\s*(?i:true|false)\s*\"))(?:\s+|\s*$)~";
+					preg_match_all($regex, $_GET['conditions'], $bool_matches, PREG_SET_ORDER);
+					if(!empty($bool_matches))
+					{
+						if(!isset($filters['conditions']['bool_vars']))
+						{
+							$filters['conditions']['bool_vars'] = array();
+						}
+						$filters['conditions']['bool_vars'][$var_name] = NULL;
+						foreach($bool_matches as $key2 => &$match)
+						{
+							$match['negate'] = (boolean) (!empty($match['negate']));
+							
+							$match['argument'] = trim($match['argument'], "\"");
+							$match['argument'] = trim($match['argument']);
+							$match['argument'] = strtolower($match['argument']);
+							$match['argument'] = $match['argument'] != 'false' && $match['argument'] == 'true';
+
+							if($match['negate'])
+							{
+								$match['negate'] = false;
+								$match['argument'] = !$match['argument'];
+							}
+
+							if(is_null($filters['conditions']['bool_vars'][$var_name]))
+								$filters['conditions']['bool_vars'][$var_name] = $match['argument'];
+							elseif($filters['conditions']['bool_vars'][$var_name] != $match['argument'])
+							{
+								echo "There is a boolean mismatch on \"".$var_name."\".";
+								exit(0);
+							}
+						}
+					}
+				}
+			}
+			if(empty($filters['conditions']['bool_vars'])){
+				unset($filters['conditions']['bool_vars']);
+			}
+
+			$valid_int_vars = $this->valid_int_vars();
+			if(!empty($valid_int_vars))
+			{
+				var_dump($valid_int_vars);
+				foreach($valid_int_vars as $key => $var_name)
+				{
+					$regex = "~(?:^\s*|\s+)(?<negate>-)?".$var_name.":(?<argument>[^\"\s]+|(?:\"[^\"]+\"))(?:\s+|\s*$)~";
+					preg_match_all($regex, $_GET['conditions'], $int_matches, PREG_SET_ORDER);
+					if(!empty($int_matches))
+					{
+						if(!isset($filters['conditions']['int_vars']))
+						{
+							$filters['conditions']['int_vars'] = array();
+						}
+						$filters['conditions']['int_vars'][$var_name] = array();
+						foreach($int_matches as $key2 => &$match)
+						{
+							$match['negate'] = (boolean) (!empty($match['negate']));
+
+							$match['argument'] = trim($match['argument'], "\"");
+							$match['argument'] = trim($match['argument']);
+							if(preg_match("~\s*(?<argument_1>-?[0-9]+)\s*..\s*(?<argument_2>-?[0-9]+)\s*~", $match['argument'], $arg_match))
+							{
+								$arg_match['operator'] = "..";
+							}
+							elseif(preg_match("~\s*(?<operator>(?:[>!<]?=)|(?:[><]?=?))\s*(?<argument_1>-?[0-9]+)\s*~", $match['argument'], $arg_match))
+							{
+								if(empty($arg_match['operator']))
+								{
+									$arg_match['operator'] = "=";
+								}
+							}
+							else
+							{
+								echo "This argument for variable \"".$var_name."\" is invalid.";
+								exit(0);
+							}
+						}
+						array_push($filters['conditions']['int_vars'][$var_name], $arg_match);
+					}
+				}
+			}
+		}
+		var_dump($filters);
+		return $query;
+	}
+}
+
+class quest extends CallableData
+{
+	public function is_valid_call()
+	{
+		return preg_match("~^/questions$~", $_SERVER['PATH_INFO']);
+	}
+	protected function valid_bool_vars()
+	{
+		return array(
+			"is_answered"
+		);
+	}
+	protected function valid_int_vars()
+	{
+		return array(
+			"question_id",
+			"owner",
+			"view_count",
+			"score",
+			"up_vote_count",
+			"down_vote_count",
+			"answer_count",
+			"accepted_answer_id"
+		);
+	}
+	protected function valid_date_vars()
+	{
+		return 0;
+	}
+	protected function valid_string_vars()
+	{
+		return 0;
+	}
+	protected function valid_var_mappings()
+	{
+		return 0;
+	}
+	protected function get_base_call()
+	{
+		return "SELECT Q.* FROM
+			(SELECT
+				Q.`selchildid` AS `accepted_answer_id`,
+				Q.`acount` AS `answer_count`,
+				Q.`content` AS `body`,
+				Q.`created` AS `creation_date`,
+				Q.`downvotes` AS `down_vote_count`,
+				(0 < Q.`acount`) AS `is_answered`,
+				IFNULL(Q.`updated`, Q.`created`) AS `last_activity_date`,
+				Q.`updated` AS `last_edit_date`,
+				Q.`userid` AS `owner`,
+				Q.`postid` AS `question_id`,
+				Q.`netvotes` AS `score`,
+				Q.`notify` AS `share_link`,
+				Q.`tags` AS `tags`,
+				Q.`title` AS `title`,
+				Q.`upvotes` AS `up_vote_count`,
+				Q.`views` AS `view_count`
+			FROM
+				`qa_posts` Q
+			WHERE
+				Q.`type` IN ('Q','Q_HIDDEN','Q_QUEUED')
+			) Q
+		WHERE TRUE";
+	}
+}
+$types = array(new quest);
+foreach($types as $type)
+{
+	echo "<".$type->get_query().">\n";
+}
+exit(0);
+
+
+
+
+
+
+
+
+
+
+
 function paginate_query()
 {
 	/**
