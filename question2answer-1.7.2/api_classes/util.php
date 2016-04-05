@@ -12,12 +12,406 @@ abstract class CallableData
 	abstract protected function valid_string_vars();
 	abstract protected function valid_var_mappings();
 	abstract protected function get_base_call();
+	
+	protected function condition_combine($arr, $logic="AND")
+	{
+		$arr = array_unique($arr);
+		$logic = strtoupper($logic);
+		$logic = trim($logic);
+		$to_remove = array();
+		$arr = array_unique($arr);
+		foreach ($arr as $key => $value)
+		{
+			$value = strtoupper($value);
+			$value = preg_replace("~\s+~", " ", $value);
+			$value = trim($value);
+			switch ($logic)
+			{
+				case 'AND':
+					switch($value)
+					{
+						case 'NOT FALSE':
+						case 'TRUE':
+							array_push($to_remove, $key);
+							break;
+					
+						case 'NOT TRUE':
+						case 'FALSE':
+							return "FALSE";
+							break;
+
+						default:
+							break;
+					}
+					break;
+				
+				case 'OR':
+					switch($value)
+					{
+						case 'NOT FALSE':
+						case 'TRUE':
+							return "TRUE";
+							break;
+					
+						case 'NOT TRUE':
+						case 'FALSE':
+							array_push($to_remove, $key);
+							break;
+
+						default:
+							break;
+					}
+					break;
+			}
+		}
+
+		foreach ($to_remove as $key => $value)
+		{
+			unset($arr[$value]);
+		}
+
+		if(empty($arr))
+		{
+			switch($logic)
+			{
+				case 'AND':
+					return "TRUE";
+					break;
+				
+				case 'OR':
+					return "FALSE";
+					break;
+			}
+		}
+
+		$ret = implode(" ".$logic." ", $arr);
+		if(1 < count($arr))
+		{
+			return "(".$ret.")";
+		}
+		else
+		{
+			return $ret;
+		}
+	}
+
+	protected function parse_bool_condition($bool_var_name)
+	{
+		$regex = "~(?<!\S)(?<negate>-)?".$bool_var_name.":(?<argument>(?i:true|false)|(?:\"\s*(?i:true|false)\s*\"))(?!\S)~";
+		preg_match_all($regex, $_GET['conditions'], $bool_matches, PREG_SET_ORDER);
+		
+		$bool_value = NULL;
+
+		if(!empty($bool_matches))
+		{
+			foreach($bool_matches as $key => $match)
+			{
+				$match['argument'] = trim($match['argument'], "\"");
+				$match['argument'] = trim($match['argument']);
+				$match['argument'] = strtolower($match['argument']);
+				$match['argument'] = (boolean) (($match['argument'] != 'false') && ($match['argument'] == 'true'));
+				
+				if(!empty($match['negate']))
+				{
+					$match['argument'] = !$match['argument'];
+				}
+
+				if(is_null($bool_value))
+				{
+					$bool_value = $match['argument'];
+				}
+				elseif($bool_value != $match['argument'])
+				{
+					echo "There is a boolean mismatch on \"".$bool_var_name."\".";
+					exit(0);
+				}
+			}
+		}
+		if(is_null($bool_value))
+		{
+			return "TRUE";
+		}
+		else
+		{
+			$mapping = $this->valid_var_mappings();
+
+			return $mapping[$bool_var_name]." = ".($bool_value ? "TRUE" : "FALSE");
+		}
+	}
+
+	protected function get_boolean_conditions()
+	{
+		$valid_bool_vars = $this->valid_bool_vars();
+		$arr = array();
+		if(!empty($valid_bool_vars))
+		{
+			foreach($valid_bool_vars as $key => $var_name)
+			{
+				array_push($arr, $this->parse_bool_condition($var_name));
+			}
+		}
+		return $this->condition_combine($arr);
+	}
+
+	protected function parse_int_condition($int_var_name)
+	{
+		$regex = "~(?<!\S)(?<negate>-)?".$int_var_name.":(?<argument>[^\s\"]+|(?:\"[^\"]+\"))(?!\S)~";
+		preg_match_all($regex, $_GET['conditions'], $int_matches, PREG_SET_ORDER);
+		if(!empty($int_matches))
+		{
+			$includes = array();
+			$include_ranges = array();
+			$excludes = array();
+			$exclude_ranges = array();
+			$comparisons = array();
+			foreach($int_matches as $key => &$match)
+			{
+				$match['negate'] = (boolean) !empty($match['negate']);
+				$match['argument'] = trim($match['argument'], "\"");
+				$match['argument'] = trim($match['argument']);
+				if(preg_match("~^\s*(?<arg>-?[0-9]+)\s*\.\.\s*\*\s*$~", $match['argument'], $arg_match))
+				{
+					$arg_match['arg'] = intval($arg_match['arg']);
+					$arg_match['operator'] = ">=";
+				}
+				elseif(preg_match("~^\s*\*\s*\.\.\s*(?<arg>-?[0-9]+)\s*$~", $match['argument'], $arg_match))
+				{
+					$arg_match['arg'] = intval($arg_match['arg']);
+					$arg_match['operator'] = "<=";
+				}
+				elseif(preg_match("~^\s*(?<arg>-?[0-9]+)\s*\.\.\s*(?<arg_2>-?[0-9]+)\s*$~", $match['argument'], $arg_match))
+				{
+					$arg_match['operator'] = "..";
+					$arg_match['arg'] = intval($arg_match['arg']);
+					$arg_match['arg_2'] = intval($arg_match['arg_2']);
+					if ($arg_match['arg'] === $arg_match['arg_2'])
+					{
+						unset($arg_match['arg_2']);
+						$arg_match['operator'] = "=";
+					}
+					else
+					{
+						$arg_match['operator'] = "..";
+					}
+				}
+				elseif(preg_match("~^\s*(?<operator>(?:[>!<]?=)|(?:[><]?=?))\s*(?<arg>-?[0-9]+)\s*$~", $match['argument'], $arg_match))
+				{
+					$arg_match['arg'] = intval($arg_match['arg']);
+					if(empty($arg_match['operator']))
+					{
+						$arg_match['operator'] = "=";
+					}
+				}
+				$match['operator'] = $arg_match['operator'];
+				$match['arg'] = $arg_match['arg'];
+				if(isset($arg_match['arg_2']))
+				{
+					$match['arg_2'] = $arg_match['arg_2'];
+				}
+				if($match['negate'])
+				{
+					$match['negate'] = false;
+					switch($match['operator'])
+					{
+						case '=':
+							$match['operator'] = "!=";
+							break;
+						
+						case '!=':
+							$match['operator'] = "=";
+							break;
+						
+						case '<':
+							$match['operator'] = ">=";
+							break;
+						
+						case '>=':
+							$match['operator'] = "<";
+							break;
+						
+						case '>':
+							$match['operator'] = "<=";
+							break;
+						
+						case '<=':
+							$match['operator'] = ">";
+							break;
+
+						case '..':
+							$match['negate'] = true;
+							break;
+					}
+				}
+				$mapping = $this->valid_var_mappings();
+				switch($match['operator'])
+				{
+					case '=':
+						array_push($includes, $match['arg']);
+						break;
+					
+					case '!=':
+						array_push($excludes, $match['arg']);
+						break;
+					
+					case '<':
+					case '>=':
+					case '>':
+					case '<=':
+						array_push($comparisons, $mapping[$int_var_name]." ".$match['operator']." ".$match['arg']);
+						break;
+
+					case '..':
+						if(!$match['negate'])
+						{
+							array_push($include_ranges, $mapping[$int_var_name]." BETWEEN ".$match['arg']." AND ".$match['arg_2']);
+						}
+						else
+						{
+							array_push($exclude_ranges, $mapping[$int_var_name]." BETWEEN ".$match['arg']." AND ".$match['arg_2']);
+						}
+						break;
+				}
+			}
+
+			$includes = array_unique($includes);
+			if(count($includes) > 0)	
+			{
+				$includes = $mapping[$int_var_name]." IN (".implode(", ", $includes).")";
+			}
+			else
+			{
+				$includes = "TRUE";
+			}
+
+			$excludes = array_unique($excludes);
+			if(count($excludes) > 0)	
+			{
+				$excludes = $mapping[$int_var_name]." NOT IN (".implode(", ", $excludes).")";
+			}
+			else
+			{
+				$excludes = "TRUE";
+			}
+
+			$comparisons = array_unique($comparisons);
+			if(count($comparisons) > 0)	
+			{
+				$comparisons = $this->condition_combine($comparisons);
+			}
+			else
+			{
+				$comparisons = "TRUE";
+			}
+
+			$include_ranges = array_unique($include_ranges);
+			if(count($include_ranges) > 0)	
+			{
+				$include_ranges = $this->condition_combine($include_ranges, "OR");
+			}
+			else
+			{
+				$include_ranges = "TRUE";
+			}
+
+			$exclude_ranges = array_unique($exclude_ranges);
+			if(count($exclude_ranges) > 0)	
+			{
+				$exclude_ranges = "NOT ".$this->condition_combine($exclude_ranges, "OR");
+			}
+			else
+			{
+				$exclude_ranges = "TRUE";
+			}
+			return $this->condition_combine(array($includes, $excludes, $comparisons, $include_ranges, $exclude_ranges));
+		}
+		else
+		{
+			return "TRUE";
+		}
+	}
+
+	protected function get_integer_conditions()
+	{
+
+		$valid_int_vars = $this->valid_int_vars();
+		$arr = array();
+		if(!empty($valid_int_vars))
+		{
+			foreach($valid_int_vars as $key => $var_name)
+			{
+				array_push($arr, $this->parse_int_condition($var_name));
+			}
+		}
+		return $this->condition_combine($arr);
+	}
+
+	protected function get_datetime_conditions()
+	{
+		return "TRUE";
+	}
+
+	protected function get_string_conditions()
+	{
+		return "TRUE";
+	}
+
+	protected function get_normal_conditions()
+	{
+		return $this->condition_combine(
+			array(
+				$this->get_boolean_conditions(),
+				$this->get_integer_conditions(),
+				$this->get_datetime_conditions(),
+				$this->get_string_conditions()
+			)
+		);
+	}
+
+	protected function get_include_terms()
+	{
+		return "TRUE";
+	}
+
+	protected function get_exclude_terms()
+	{
+		return "NOT FALSE";
+	}
+
+	protected function get_search_conditions()
+	{
+		return $this->condition_combine(
+			array(
+				$this->get_include_terms(),
+				$this->get_exclude_terms()
+			)
+		);
+	}
+
 	public function get_query()
 	{
 		if(!$this->is_valid_call())
 			return false;
 		$query = $this->get_base_call();
 		$filters = array();
+		$all_conditions = $this->condition_combine(
+			array(
+				$this->get_normal_conditions(),
+				$this->get_search_conditions()
+			)
+		);
+
+		if(preg_match("i~^\s*TRUE\s*$~", $all_conditions))
+		{
+			$all_conditions = "";
+		}
+
+		if(!empty($all_conditions))
+		{
+			$query .= " WHERE ".$all_conditions;
+		}
+
+		return $query;
+		/*
 		if(!empty($_GET['conditions']))
 		{
 			$filters['conditions'] = array();
@@ -109,10 +503,13 @@ abstract class CallableData
 				}
 			}
 		}
-		var_dump($filters);
-		return $query;
+		*/
 	}
 }
+
+/**
+
+*/
 
 class quest extends CallableData
 {
@@ -120,12 +517,14 @@ class quest extends CallableData
 	{
 		return preg_match("~^/questions$~", $_SERVER['PATH_INFO']);
 	}
+
 	protected function valid_bool_vars()
 	{
 		return array(
 			"is_answered"
 		);
 	}
+
 	protected function valid_int_vars()
 	{
 		return array(
@@ -139,18 +538,46 @@ class quest extends CallableData
 			"accepted_answer_id"
 		);
 	}
+
 	protected function valid_date_vars()
 	{
-		return 0;
+		return array(
+			"creation_date",
+			"last_activity_date",
+			"last_edit_date"
+		);
 	}
+
 	protected function valid_string_vars()
 	{
-		return 0;
+		return array(
+			"title",
+			"body",
+			"tags"
+		);
 	}
+
 	protected function valid_var_mappings()
 	{
-		return 0;
+		return array(
+			"question_id" => "Q.`question_id`",
+			"owner" => "Q.`owner`",
+			"title" => "Q.`title`",
+			"body" => "Q.`body`",
+			"tags" => "Q.`tags`",
+			"view_count" => "Q.`view_count`",
+			"score" => "Q.`score`",
+			"up_vote_count" => "Q.`up_vote_count`",
+			"down_vote_count" => "Q.`down_vote_count`",
+			"answer_count" => "Q.`answer_count`",
+			"is_answered" => "Q.`is_answered`",
+			"accepted_answer_id" => "Q.`accepted_answer_id`",
+			"creation_date" => "Q.`creation_date`",
+			"last_activity_date" => "Q.`last_activity_date`",
+			"last_edit_date" => "Q.`last_edit_date`"
+		);
 	}
+
 	protected function get_base_call()
 	{
 		return "SELECT Q.* FROM
@@ -175,10 +602,11 @@ class quest extends CallableData
 				`qa_posts` Q
 			WHERE
 				Q.`type` IN ('Q','Q_HIDDEN','Q_QUEUED')
-			) Q
-		WHERE TRUE";
+			) Q";
 	}
 }
+
+
 $types = array(new quest);
 foreach($types as $type)
 {
