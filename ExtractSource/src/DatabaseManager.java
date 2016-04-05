@@ -32,6 +32,8 @@ public class DatabaseManager
 		this.data = data;
 	}
 	
+	public DatabaseManager(){}
+	
 	/**
 	 * Connects to a database
 	 * @throws SQLException
@@ -56,9 +58,15 @@ public class DatabaseManager
 //		String user = "may1639";
 //		String pass = "9nbje09p";
 		//String dbUrl = "jdbc:mysql://localhost:3306/source?rewriteBatchedStatements=true";
-		String dbUrl = "jdbc:mysql://localhost:3306/source";
+		// local test
+//		String dbUrl = "jdbc:mysql://localhost:3306/source";
+//		String user = "root";
+//		String pass = "root";
+		
+		// for deployment on web server
+		String dbUrl = "jdbc:mysql://localhost:3306/may1639_db";
 		String user = "root";
-		String pass = "root";
+		String pass = "9nbje09p";
 		
 		conn = DriverManager.getConnection(dbUrl, user, pass);
 		conn.setAutoCommit(false);
@@ -263,22 +271,40 @@ public class DatabaseManager
 	 */
 	public void addData() throws SQLException
 	{
-		int libID = 0;
-		int pakID = 0;
-		int typeID = 0;
-		int methID = 0;
+		Statement getID = conn.createStatement();
+		
+		ResultSet rs = getID.executeQuery( "select max(ID) as ID from library" );
+		rs.next();
+		int libID = rs.getInt("ID") + 1;
+		
+		rs = getID.executeQuery( "select max(ID) as ID from package" );
+		rs.next();
+		int pakID = rs.getInt("ID") + 1;
+		
+		rs = getID.executeQuery( "select max(ID) as ID from type" );
+		rs.next();
+		int typeID = rs.getInt("ID") + 1;
+		
+		rs = getID.executeQuery( "select max(ID) as ID from method" );
+		rs.next();
+		int methID = rs.getInt("ID") + 1;
+		
+//		int libID = 0;
+//		int pakID = 0;
+//		int typeID = 0;
+//		int methID = 0;
 		
 		// Insert an entry into the table
-		PreparedStatement insertLib = conn.prepareStatement ("insert into Library (ID, Name)" +
+		PreparedStatement insertLib = conn.prepareStatement ("insert into library (ID, Name)" +
 														     "VALUES (?, ?)"
 														 	);
-		PreparedStatement insertPak = conn.prepareStatement ("insert into Package (ID, Name, LID)" +
+		PreparedStatement insertPak = conn.prepareStatement ("insert into package (ID, Name, LID)" +
 															 "VALUES (?, ?, ?)"
 															);
-		PreparedStatement insertType = conn.prepareStatement ("insert into Type (ID, Name, PID, Source, IsInterface, IsInnerClass, Javadoc, Annotations, Modifiers, TypeParams, TypeParamBindings, SuperClass, Interfaces, DeclaringClass)" +
+		PreparedStatement insertType = conn.prepareStatement ("insert into type (ID, Name, PID, Source, IsInterface, IsInnerClass, Javadoc, Annotations, Modifiers, TypeParams, TypeParamBindings, SuperClass, Interfaces, DeclaringClass)" +
 				  											  "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
 															 );
-		PreparedStatement insertMeth = conn.prepareStatement ("insert into Method (ID, Name, TID, Source, Constructor, Javadoc, Annotations, Modifiers, TypeParams, TypeParamBindings, ReturnType, Arguments, NumArguments, ArgumentTypes, ThrownExceptions, Body, DeclaringClass)" +
+		PreparedStatement insertMeth = conn.prepareStatement ("insert into method (ID, Name, TID, Source, Constructor, Javadoc, Annotations, Modifiers, TypeParams, TypeParamBindings, ReturnType, Arguments, NumArguments, ArgumentTypes, ThrownExceptions, Body, DeclaringClass)" +
 														  	  "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
 															 );
 		
@@ -578,5 +604,34 @@ public class DatabaseManager
 		rs.close();
 		drop.close();
 		conn.commit();
+	}
+	
+	public void run() throws SQLException
+	{
+
+		Statement getID = conn.createStatement();
+		
+		ResultSet rs = getID.executeQuery( "select max(ID) as ID from Library" );
+		rs.next();
+		int lid = rs.getInt("ID");
+		
+		rs = getID.executeQuery( "select max(ID) as ID from Package" );
+		rs.next();
+		int pid = rs.getInt("ID");
+		
+		rs = getID.executeQuery( "select max(ID) as ID from Type" );
+		rs.next();
+		int tid = rs.getInt("ID");
+		
+		rs = getID.executeQuery( "select max(ID) as ID from Method" );
+		rs.next();
+		int mid = rs.getInt("ID");
+		
+		System.out.println("lid: " + lid);
+		System.out.println("pid: " + pid);
+		System.out.println("tid: " + tid);
+		System.out.println("mid: " + mid);
+		
+		rs.close();
 	}
 }

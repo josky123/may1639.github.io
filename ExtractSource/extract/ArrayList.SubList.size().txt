@@ -1,4 +1,0 @@
-public int size(){
-  checkForComodification();
-  return this.size;
-}

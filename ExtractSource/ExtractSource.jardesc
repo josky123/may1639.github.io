@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="WINDOWS-1252" standalone="no"?>
+<jardesc>
+    <jar path="ExtractSource/ExtractSource.jar"/>
+    <options buildIfNeeded="true" compress="true" descriptionLocation="/ExtractSource/ExtractSource.jardesc" exportErrors="true" exportWarnings="true" includeDirectoryEntries="false" overwrite="false" saveDescription="true" storeRefactorings="false" useSourceFolders="false"/>
+    <storedRefactorings deprecationInfo="true" structuralOnly="false"/>
+    <selectedProjects/>
+    <manifest generateManifest="true" mainClassHandleIdentifier="=ExtractSource/src&lt;{Client.java[Client" manifestLocation="" manifestVersion="1.0" reuseManifest="false" saveManifest="false" usesManifest="true">
+        <sealing sealJar="false">
+            <packagesToSeal/>
+            <packagesToUnSeal/>
+        </sealing>
+    </manifest>
+    <selectedElements exportClassFiles="true" exportJavaFiles="false" exportOutputFolder="false">
+        <file path="/ExtractSource/junit-master.zip"/>
+        <javaElement handleIdentifier="=ExtractSource/src&lt;{DatabaseManager.java"/>
+        <javaElement handleIdentifier="=ExtractSource/src&lt;{SourceParser.java"/>
+        <folder path="/ExtractSource/lib"/>
+        <file path="/ExtractSource/ExtractSource.jardesc"/>
+        <javaElement handleIdentifier="=ExtractSource/src&lt;{Client.java"/>
+        <file path="/ExtractSource/TestClass.txt"/>
+        <javaElement handleIdentifier="=ExtractSource/src&lt;{ParsedMethod.java"/>
+        <file path="/ExtractSource/.project"/>
+        <file path="/ExtractSource/ArrayList.txt"/>
+        <folder path="/ExtractSource/JDT lib"/>
+        <javaElement handleIdentifier="=ExtractSource/src&lt;{ExtractJava.java"/>
+        <javaElement handleIdentifier="=ExtractSource/src&lt;{ParsedType.java"/>
+        <file path="/ExtractSource/jdt tutorial source.txt"/>
+        <file path="/ExtractSource/.classpath"/>
+    </selectedElements>
+</jardesc>

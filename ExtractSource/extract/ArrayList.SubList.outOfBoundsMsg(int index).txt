@@ -1,3 +1,0 @@
-private String outOfBoundsMsg(int index){
-  return "Index: " + index + ", Size: "+ this.size;
-}
