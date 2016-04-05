@@ -20,9 +20,14 @@ This file contains the logic of many shared/common functions.
 
 require_once "./api_classes/util.php";
 
+require_once "./api_classes/posts.php";
+require_once "./api_classes/questions.php";
+require_once "./api_classes/answers.php";
+require_once "./api_classes/comments.php";
+
 $ret_type = NULL;
 
-$types = array(new quest);
+$types = array(new Question, new Answer, new Comment, new Post);
 foreach($types as $type)
 {
 	if($type->is_valid_call())
