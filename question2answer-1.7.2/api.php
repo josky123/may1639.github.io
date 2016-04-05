@@ -20,7 +20,61 @@ This file contains the logic of many shared/common functions.
 
 require_once "./api_classes/util.php";
 
-exit(0);
+$ret_type = NULL;
+
+$types = array(new quest);
+foreach($types as $type)
+{
+	if($type->is_valid_call())
+	{
+		$ret_type = $type;
+		break;
+	}
+}
+
+if(is_null($ret_type))
+{
+	echo "The given call was not recognized.";
+	exit(0);
+}
+
+/**
+This file will allow us to execute database queries off of Q2A's code.
+*/
+require './qa-include/qa-base.php';
+
+
+$results = qa_db_query_raw($ret_type->get_query());
+
+/**
+This array will contain all the data objects returned from the query.
+*/
+$return_value = array();
+
+
+/**
+Go through each row of the results.
+*/
+while($row = mysqli_fetch_array($results, MYSQL_ASSOC))
+{
+	array_push($return_value, $ret_type->construct_from_row($row));
+}
+
+/**
+Format array output similar to StackExchange standards.
+*/
+$ret = array("Items" => $return_value);
+
+/**
+This line of code gzips everything presented as output
+*/
+ob_start('ob_gzhandler');
+
+/**
+return JSON array
+*/
+exit(json_encode($ret));
+
 
 /**
 These files contain the logic of each data object.
