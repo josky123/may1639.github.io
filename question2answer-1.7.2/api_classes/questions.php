@@ -5,16 +5,16 @@ require_once "./api_classes/util.php";
 class Question extends CallableData
 {
 	var $question_id;
-	var $owner;
 	var $title;
 	var $body;
 	var $tags;
+	var $owner;
 	var $view_count;
 	var $score;
 	var $up_vote_count;
 	var $down_vote_count;
-	var $answer_count;
 	var $is_answered;
+	var $answer_count;
 	var $accepted_answer_id;
 	var $creation_date;
 	var $last_activity_date;

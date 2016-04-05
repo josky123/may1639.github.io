@@ -5,17 +5,16 @@ require_once "./api_classes/util.php";
 class Answer extends CallableData
 {
 	var $answer_id;
+	var $question_id;
 	var $body;
-	var $creation_date;
+	var $owner;
+	var $score;
+	var $up_vote_count;
 	var $down_vote_count;
+	var $creation_date;
 	var $last_activity_date;
 	var $last_edit_date;
-	var $owner;
-	var $question_id;
-	var $score;
-	var $title;
-	var $up_vote_count;
-
+	
 	public function is_valid_call()
 	{
 		return preg_match("~^/answers$~", $_SERVER['PATH_INFO']);
@@ -37,7 +36,6 @@ class Answer extends CallableData
 		$this->owner = (integer) $row['owner'];
 		$this->question_id = (integer) $row['question_id'];
 		$this->score = (integer) $row['score'];
-		$this->title = $row['title'];
 		$this->up_vote_count = (integer) $row['up_vote_count'];
 	}
 
@@ -70,7 +68,6 @@ class Answer extends CallableData
 	protected function valid_string_vars()
 	{
 		return array(
-			"title",
 			"body"
 		);
 	}
@@ -87,7 +84,6 @@ class Answer extends CallableData
 			"owner" => "A.`owner`",
 			"question_id" => "A.`question_id`",
 			"score" => "A.`score`",
-			"title" => "A.`title`",
 			"up_vote_count" => "A.`up_vote_count`"
 			);
 	}
@@ -105,7 +101,6 @@ class Answer extends CallableData
 		A.`userid`	AS	`owner`,
 		A.`parentid`	AS	`question_id`,
 		A.`netvotes`	AS	`score`,
-		A.`title`	AS	`title`,
 		A.`upvotes`	AS	`up_vote_count`
 	FROM
 		`qa_posts` A
