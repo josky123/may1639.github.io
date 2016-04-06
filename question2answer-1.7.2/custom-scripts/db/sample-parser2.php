@@ -7,8 +7,37 @@ $username = "root";
 $password = "YamadaKun2016";
 $dbname = "Related_Posts";
 $fileName = "../../../../../CprE 491/StackExchangeDataDump/Posts.xml";
-$countMax = 10000;
+//$fileName = "XMLTest.xml";
+//$countMax = 10000;
 $timeStart = microtime(true);
+
+$count = 0;
+
+// Giant List of Globals for Post Information
+$id;
+$postType;
+$acceptedId;
+$parentId;
+$creationDate;
+$score;
+$viewCount;
+$ownerId;
+$ownerName;
+$lastEditorId;
+$lastEditorName;
+$lastEditDate;
+$lastActivityDate;
+$title;
+$answerCount;
+$commentCount;
+$favCount;
+$communityOwnedDate;
+
+// Globals for Dictionary Information
+$word;
+
+// Final Global for tag flag
+$isTag;
 
 // Create connection
 $conn = new mysqli($servername, $username, $password, $dbname);
@@ -26,9 +55,26 @@ if( !$xml->open($fileName) ){
 	die("Failed to open \"".$fileName."\". Program terminated.<br>");
 }
 
-$count = 0;
 
-while( $xml->read() && $count < $countMax ){
+$postQuery = "INSERT INTO Posts (Post_ID, PostTypeId, AcceptedAnswerId, ParentId, CreationDate, Score, ViewCount, OwnerUserId, OwnerDisplayName, LastEditorUserId, LastEditorDisplayName, LastEditDate, LastActivityDate, Title, AnswerCount, CommentCount, FavoriteCount, CommunityOwnedDate) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+$dictionaryInsertQuery = "INSERT IGNORE INTO Dictionary (Word) VALUES ( ? )";
+
+$joinQuery = "INSERT INTO dictionary_post_join (Post_ID, Word, Is_Tag) VALUES ( ?, ?, ? )";
+
+$preparePost = $conn->prepare($postQuery);
+$prepareDict = $conn->prepare($dictionaryInsertQuery);
+$prepareJoin = $conn->prepare($joinQuery);
+
+$preparePost->bind_param( "iiiisiiisissssiiis", $id, $postType, $acceptedId, $parentId, $creationDate, $score, $viewCount, $ownerId, $ownerName, $lastEditorId, $lastEditorName, $lastEditDate, $lastActivityDate, $title, $answerCount, $commentCount, $favCount, $communityOwnedDate );
+
+$prepareDict->bind_param( "s", $word );
+
+$prepareJoin->bind_param( "isi", $id, $word, $isTag );
+
+$conn->query("START TRANSACTION");
+
+while( $xml->read() && $count < 1000 ){
 
 
 	if( $xml->name == "row" ){
@@ -56,13 +102,8 @@ while( $xml->read() && $count < $countMax ){
 		$title = $xml->getAttribute('Title');
 		// Removes apostrophes that may screw up the SQL call.
 		$title = str_replace("'","''",$title);
-		$parts = preg_split('/\s+/', $title);
-		
-		// The body requires special treatment
-		//$body = $xml->getAttribute('Body');		
-		// Removes apostrophes that may screw up the SQL call.
-		//$body = str_replace("'","''",$body);
-		//$partsB = preg_split('/\s+/', $body);
+		$title2 = removePunctuationFromString($title);
+		$parts = preg_split('/\s+/', $title2);
 		
 		$tags = $xml->getAttribute('Tags');
 		$answerCount = $xml->getAttribute('AnswerCount');
@@ -70,145 +111,56 @@ while( $xml->read() && $count < $countMax ){
 		$favCount = $xml->getAttribute('FavoriteCount');
 		$communityOwnedDate = $xml->getAttribute('CommunityOwnedDate');
 		
-		//$url = "http://stackoverflow.com/questions/".$id;		
-		
-		// Checks for a duplicate entry
-		// TODO: In the future, it probably needs to update fields here rather than skipping them altogether.
-		if( checkDuplicatePostEntry( $conn, $id ) ){
-			echo "Duplicate for ID ".$id."<br>";
-			continue;
-		}
+		$preparePost->execute();
 	
-		//Perform the main query.
-		$sql = "INSERT INTO Posts (Post_ID, PostTypeId, CreationDate, Score, LastActivityDate, CommentCount ) VALUES (".$id.", ".$postType.", '".$creationDate."', ".$score.", '".$lastActivityDate."', ".$commentCount.")";
-		//$sql = "INSERT INTO Posts (Post_ID, PostTypeId, CreationDate, Score, Body, LastActivityDate, CommentCount ) VALUES (".$id.", ".$postType.", '".$creationDate."', ".$score.", '".$body."', '".$lastActivityDate."', ".$commentCount.")";
-		//$sql = "INSERT INTO Posts (Post_ID, PostTypeId, CreationDate, Score, Body, LastActivityDate, CommentCount, URL) VALUES (".$id.", ".$postType.", '".$creationDate."', ".$score.", '".$body."', '".$lastActivityDate."', ".$commentCount.", '".$url."')";
-
-		if ($conn->query($sql) === TRUE) {
-			//echo "New record for ID ".$id." was created successfully<br>";
-		} else {
-			echo "<br>Error: " . $sql . "<br>" . $conn->error."<br>";
-			echo $title."<br><br>";
-		}
-		
-		
-		//Perform conditional queries.
-		if( $ownerId ){
-			updatePostTableFieldForId( $conn, "OwnerUserId", $ownerId, $id );
-		}
-		
-		if( $ownerName ){
-			updatePostTableFieldForId( $conn, "OwnerDisplayName", "'".$ownerName."'", $id );
-		}
-
-		if( $communityOwnedDate ){
-			updatePostTableFieldForId( $conn, "CommunityOwnedDate", "'".$communityOwnedDate."'", $id );
-		}
-		
-		if( $lastEditorId ){
-			updatePostTableFieldForId( $conn, "LastEditorUserId", $lastEditorId, $id );
-		}
-		
-		if( $lastEditorName ){
-			updatePostTableFieldForId( $conn, "LastEditorDisplayName", "'".$lastEditorName."'", $id );
-		}
-		
-		if( $lastEditDate ){
-			updatePostTableFieldForId( $conn, "LastEditDate", "'".$lastEditDate."'", $id );
-		}	
-			
-		//Several Additional Fields to consider with dealing with type 1.
-		if( $postType == 1 ){
-			
-			// Three fields guaranteed for a type 1 post
-			$sql = "UPDATE posts SET ViewCount=".$viewCount.", Title='".$title."', AnswerCount=".$answerCount.", FavoriteCount=".$favCount." WHERE Post_ID=".$id;
-			
-			if ($conn->query($sql) === TRUE) {
-				//echo "Successfully updated post ID ".$id."<br>";
-			} else {
-				//echo "<br>Error: " . $sql . "<br>" . $conn->error."<br><br>";
-			}
-			
-			// Accepted Answer Id in the case of an accepted answer
-			if( $acceptedId ){
-				updatePostTableFieldForId( $conn, "AcceptedAnswerId", "'".$acceptedId."'", $id );
-			}	
-		}
-
-		//Fields necessary only for type 2.
-		else if( $postType == 2 ){
-			
-			updatePostTableFieldForId( $conn, "ParentId", "'".$parentId."'", $id );
-		}
-
-		if( $postType == 1 ){
-			
-			//echo $id." ";
-			//print_r("tags"
-			
-			// Format and Add each tag to the dictionary
-			$tags2 = str_replace("<"," ",$tags);
-			$tags2 = str_replace(">"," ",$tags2);
-			$tags2 = substr( $tags2, 1, -1 );
-			$tags2 = preg_split('/\s+/', $tags2);
-			//print_r($tags2);
-			//echo "<br>";
-			addWordsToDictionaryAndJoin($conn, $tags2, $id, true);
-			
-			// Add each word in the title to the dictionary.
-			addWordsToDictionaryAndJoin($conn, $parts, $id, false);
-		}	
-		
-/*
-		echo $id."<br>".$body."<br>";
-		
-		
-		for( $i = 0; $i < count($partsB); $i++ ){
-			//echo $partsB[$i];
-			//echo "<br>";
-			
-			$part = $partsB[$i];
-			$partLen = strlen($part);
-			$partChar = $part[$partLen-1];
-			
-			if( $partChar == '?' || $partChar == '.' || $partChar == '!' ){
-				$part = substr( $part, 0, -1 );
-			}
-		
-			$dupFlag = false;
-			$checkQuery = "SELECT Word_ID FROM Dictionary WHERE Word='".$part."'";
-			
-			$check = $conn->query($checkQuery);
-			if( $check->num_rows > 0 ){
-				$dupFlag = true;
-			}
+		$isTag = 0;
+		for( $i = 0; $i < count($parts); $i++ ){
+				$word = $parts[$i];
 				
-			//$dupCheck = ($dupFlag) ? 'true' : 'false';
-			//echo $dupCheck."<br>";
-			
-			if( !$dupFlag ){
-				
-				$sql = "INSERT INTO Dictionary (Word) VALUES ('".$part."')";
-				if ($conn->query($sql) === TRUE) {
-					echo "New record for word \"".$part."\" was created successfully<br>";
-				} else {
-					echo "Error: " . $sql . "<br>" . $conn->error;
+				if( strcmp( $word, "" ) && strcmp( $word, " " ) ){
+					$prepareDict->execute();
+					$prepareJoin->execute();
 				}
-			}
 		}
-*/		
-		
-		//echo $id." | ".$title." | ".$url;
-		//echo "<br>";
-	}
 	
-	$count++;
+		$count++;
+	}
 }
-
+$preparePost->close();
+$prepareDict->close();
+$prepareJoin->close();
+$conn->query("COMMIT");
 $xml->close();
 $conn->close();
 echo "Parsing Complete.  Script executed in ".date("H:i:s",microtime(true)-$timeStart).".";
 
+
+function removePunctuationFromString( $str ){
+		
+	$str = str_replace("."," ",$str);
+	$str = str_replace(","," ",$str);
+	$str = str_replace("?"," ",$str);
+	$str = str_replace("!"," ",$str);
+	$str = str_replace("&"," ",$str);
+	$str = str_replace("("," ",$str);
+	$str = str_replace(")"," ",$str);
+	$str = str_replace("{"," ",$str);
+	$str = str_replace("}"," ",$str);
+	$str = str_replace("["," ",$str);
+	$str = str_replace("]"," ",$str);
+	$str = str_replace(":"," ",$str);
+	$str = str_replace(";"," ",$str);
+	$str = str_replace("<"," ",$str);
+	$str = str_replace(">"," ",$str);
+	$str = str_replace("#"," ",$str);
+	$str = str_replace("+"," ",$str);
+	$str = str_replace("\""," ",$str);
+	$str = str_replace("/"," ",$str);
+	$str = str_replace("'"," ",$str);
+	$str = str_replace("\t"," ",$str);
+	
+	return $str;
+}
 
 /*
  * Updates the given field to a new value for the given post ID.
