@@ -1,4 +1,0 @@
-public ArrayListSpliterator<E> trySplit(){
-  int hi=getFence(), lo=index, mid=(lo + hi) >>> 1;
-  return (lo >= mid) ? null : new ArrayListSpliterator<E>(list,lo,index=mid,expectedModCount);
-}

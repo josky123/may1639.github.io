@@ -16,9 +16,11 @@
 			chdir($dest);
 			exec("jar xf " . $name);
 			unlink($name);
+			$source = pathinfo($name, PATHINFO_FILENAME);
 			// run parser on file and add it to the database
-			//echo "TODO: run parser on file and add it to the database.";
-			//echo exec("java Test");
+			echo shell_exec("java -jar ExtractSource.jar " . $source);
+			//echo shell_exec("java Client " . $source);
+			//echo "java " . getcwd() . "/ExtractSource.jar " . $source;
 			//echo exec("ls");
 			chdir("..");
 		}

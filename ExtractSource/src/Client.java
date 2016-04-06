@@ -42,14 +42,14 @@ public class Client
 		//System.out.println(args[0]);
 		ExtractJava ej = new ExtractJava(args[0], true, false);
 		ej.extractAll();
-		ej.printData();
+		//ej.printData();
 		
 		
-//		DatabaseManager dm = new DatabaseManager(ej.getData());
-//		dm.connect();
-//		dm.buildDatabase();
-//		dm.addData();
-//		dm.close();
+		DatabaseManager dm = new DatabaseManager(ej.getData());
+		dm.connect();
+		//dm.buildDatabase();
+		dm.addData();
+		dm.close();
 		
 		
 		
@@ -59,6 +59,9 @@ public class Client
 //		dm.createTypesTable();
 //		dm.close();
 		
-		
+//		DatabaseManager dm = new DatabaseManager();
+//		dm.connect();
+//		dm.run();
+//		dm.close();
 	}
 }

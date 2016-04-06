@@ -1,5 +1,13 @@
+/Client.class
+/DatabaseManager.class
+/ExtractJava.class
+/ExtractSource.class
+/FileWalker.class
+/ParsedMethod.class
+/ParsedType.class
 /SourceParser$1.class
 /SourceParser.class
+/Test.class
 /TestClass.class
 /TestJDBC.class
 /TestTypeParams.class

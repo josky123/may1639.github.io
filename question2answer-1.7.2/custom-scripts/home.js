@@ -1,4 +1,5 @@
 initialize();
+var navLinks = null;
 function keycheck(event)
 {
     var key = event.keyCode;
@@ -37,7 +38,9 @@ function search()
             // add pages
             if (pagedata.length < 1) {
                 pageBox.innerHTML = "No results found for \"" + searchText + "\" in " + searchType + ".";
+                return;
             }
+            navLinks = new Array();
             for (var x = 0; x < pagedata.length; x++)
             {
                 // array of links
@@ -48,9 +51,9 @@ function search()
                 // set link to top of page
                 l.href = "#";
                 // set displayed text of link
-                l.innerHTML = pagedata[x].LName;
+                l.innerHTML = " \\ " + pagedata[x].LName;
                 // set onclick function
-                l.setAttribute("onclick", "nav(\"" + pagedata[x].LName + "\", " + pagedata[x].LID + ", \"" + "Library" + "\")" );
+                l.setAttribute("onclick", "nav(\"" + pagedata[x].LName + "\", " + pagedata[x].LID + ", \"" + "Library" + "\", 1, " + x + ")" );
                 // add new link to array
                 links[links.length] = l;
 
@@ -58,37 +61,39 @@ function search()
                     var p = document.createElement("a");
                     p.href = "#";
                     p.innerHTML = " \\ " + pagedata[x].PName;
-                    p.setAttribute("onclick", "nav(\"" + pagedata[x].PName + "\", " + pagedata[x].PID + ", \"" + "Package" + "\")");
+                    p.setAttribute("onclick", "nav(\"" + pagedata[x].PName + "\", " + pagedata[x].PID + ", \"" + "Package" + "\", 2, " + x + ")");
                     links[links.length] = p;
                 }
                 if (pagedata[x].hasOwnProperty("TName")) {
                     var c = document.createElement("a");
                     c.href = "#";
                     c.innerHTML = " \\ " + pagedata[x].TName;
-                    c.setAttribute("onclick", "nav(\"" + pagedata[x].TName + "\", " + pagedata[x].TID + ", \"" + "Class" + "\")");
+                    c.setAttribute("onclick", "nav(\"" + pagedata[x].TName + "\", " + pagedata[x].TID + ", \"" + "Class" + "\", 3, " + x + ")");
                     links[links.length] = c;
                 }
                 if (pagedata[x].hasOwnProperty("MName")) {
                     var m = document.createElement("a");
                     m.href = "#";
                     m.innerHTML = " \\ " + pagedata[x].MName + "(" + pagedata[x].Args + ")";
-                    m.setAttribute("onclick", "nav(\"" + pagedata[x].MName + "\", " + pagedata[x].MID + ", \"" + "Method" + "\")");
-                    m.addEventListener("onclick", function(){
-                        nav(pagedata[x].MName, pagedata[x].MID, "Method", links);
-                    });
+                    m.setAttribute("onclick", "nav(\"" + pagedata[x].MName + "\", " + pagedata[x].MID + ", \"" + "Method" + "\", 4, " + x +")");
+                    // m.addEventListener("onclick", function(){
+                    //     nav(pagedata[x].MName, pagedata[x].MID, "Method", links);
+                    // });
                     links[links.length] = m;
+                    console.log(m);
                 }
-                console.log(links[0]);
+                //console.log(links[0]);
                 for (var j = 0; j < links.length; j++) {
                     pageBox.appendChild(links[j]);
                 }
                 var br = document.createElement("br");
                 pageBox.appendChild(br);
+                navLinks[x] = links;
             }
         });
 }
 
-function nav(name, id, type, links)
+function nav(name, id, type, numLinks, linksIndex)
 {
     // Update navigation links. If name is in list, delete elements after name.
     // If not found, append name to list of links.
@@ -98,7 +103,8 @@ function nav(name, id, type, links)
     var found = false;
     var nodes = navigation.childNodes;
     var index;
-    if (links == null)
+    var links;
+    if (navLinks == null)
     {
         for (var x = 0; x < numchild; x++)
         {
@@ -121,22 +127,19 @@ function nav(name, id, type, links)
         }    
     }else
     {
-        console.log(links);
+        console.log(navLinks);
+        //remove old links on navigation bar
         for (var x = 1; x < numchild; x++)
         {
             child = nodes[1];
             navigation.removeChild(child);
         }
-        for (var x = 0; x < links.length; x++)
+        // add new links
+        for (var x = 0; x < numLinks; x++)
         {
-            navigation.appendChild(links[x]);
+            navigation.appendChild(navLinks[linksIndex][x]);
+            console.log(navLinks[linksIndex][x]);
         }
-        var a = document.createElement("a");
-        a.name = name;
-        a.href = "#";
-        a.setAttribute("onclick", "nav(\"" + name + "\", " + id + ", " + "\"" + type + "\")" );
-        a.innerHTML = " \\ " + name;
-        navigation.appendChild(a);
     }
     
 
@@ -202,6 +205,7 @@ function nav(name, id, type, links)
                 pageBox.appendChild(a);
                 var br = document.createElement("br");
                 pageBox.appendChild(br);
+                console.log("a: " + a);
             }
         });
     }
@@ -233,7 +237,7 @@ function nav(name, id, type, links)
     else {
         source.style.display = 'none';
     }
-	
+	navLinks = null;
 	genRelatedDiscussions();
 }
 
