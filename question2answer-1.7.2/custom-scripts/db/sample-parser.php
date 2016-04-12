@@ -1,10 +1,14 @@
 <?php
 
+ini_set('max_execution_time', 300); //300 seconds = 5 minutes
+
 $servername = "localhost";
 $username = "root";
 $password = "YamadaKun2016";
 $dbname = "Related_Posts";
-$fileName = "XMLTest.xml";
+$fileName = "../../../../../CprE 491/StackExchangeDataDump/Posts.xml";
+$countMax = 10000;
+$timeStart = microtime(true);
 
 // Create connection
 $conn = new mysqli($servername, $username, $password, $dbname);
@@ -22,7 +26,9 @@ if( !$xml->open($fileName) ){
 	die("Failed to open \"".$fileName."\". Program terminated.<br>");
 }
 
-while( $xml->read() ){
+$count = 0;
+
+while( $xml->read() && $count < $countMax ){
 
 
 	if( $xml->name == "row" ){
@@ -39,8 +45,10 @@ while( $xml->read() ){
 		$viewCount = $xml->getAttribute('ViewCount');
 		$ownerId = $xml->getAttribute('OwnerUserId');
 		$ownerName = $xml->getAttribute('OwnerDisplayName');
+		$ownerName = str_replace("'","''",$ownerName);
 		$lastEditorId = $xml->getAttribute('LastEditorUserId');
 		$lastEditorName = $xml->getAttribute('LastEditorDisplayName');
+		$lastEditorName = str_replace("'","''",$lastEditorName);
 		$lastEditDate = $xml->getAttribute('LastEditDate');
 		$lastActivityDate = $xml->getAttribute('LastActivityDate');
 		
@@ -51,10 +59,10 @@ while( $xml->read() ){
 		$parts = preg_split('/\s+/', $title);
 		
 		// The body requires special treatment
-		$body = $xml->getAttribute('Body');		
+		//$body = $xml->getAttribute('Body');		
 		// Removes apostrophes that may screw up the SQL call.
 		//$body = str_replace("'","''",$body);
-		$partsB = preg_split('/\s+/', $body);
+		//$partsB = preg_split('/\s+/', $body);
 		
 		$tags = $xml->getAttribute('Tags');
 		$answerCount = $xml->getAttribute('AnswerCount');
@@ -62,7 +70,7 @@ while( $xml->read() ){
 		$favCount = $xml->getAttribute('FavoriteCount');
 		$communityOwnedDate = $xml->getAttribute('CommunityOwnedDate');
 		
-		$url = "http://stackoverflow.com/questions/".$id;		
+		//$url = "http://stackoverflow.com/questions/".$id;		
 		
 		// Checks for a duplicate entry
 		// TODO: In the future, it probably needs to update fields here rather than skipping them altogether.
@@ -72,7 +80,8 @@ while( $xml->read() ){
 		}
 	
 		//Perform the main query.
-		$sql = "INSERT INTO Posts (Post_ID, PostTypeId, CreationDate, Score, Body, LastActivityDate, CommentCount, URL) VALUES (".$id.", ".$postType.", '".$creationDate."', ".$score.", 'BODY'".", '".$lastActivityDate."', ".$commentCount.", '".$url."')";
+		$sql = "INSERT INTO Posts (Post_ID, PostTypeId, CreationDate, Score, LastActivityDate, CommentCount ) VALUES (".$id.", ".$postType.", '".$creationDate."', ".$score.", '".$lastActivityDate."', ".$commentCount.")";
+		//$sql = "INSERT INTO Posts (Post_ID, PostTypeId, CreationDate, Score, Body, LastActivityDate, CommentCount ) VALUES (".$id.", ".$postType.", '".$creationDate."', ".$score.", '".$body."', '".$lastActivityDate."', ".$commentCount.")";
 		//$sql = "INSERT INTO Posts (Post_ID, PostTypeId, CreationDate, Score, Body, LastActivityDate, CommentCount, URL) VALUES (".$id.", ".$postType.", '".$creationDate."', ".$score.", '".$body."', '".$lastActivityDate."', ".$commentCount.", '".$url."')";
 
 		if ($conn->query($sql) === TRUE) {
@@ -192,11 +201,14 @@ while( $xml->read() ){
 		//echo $id." | ".$title." | ".$url;
 		//echo "<br>";
 	}
+	
+	$count++;
 }
 
 $xml->close();
 $conn->close();
-echo "Parsing Complete.";
+echo "Parsing Complete.  Script executed in ".date("H:i:s",microtime(true)-$timeStart).".";
+
 
 /*
  * Updates the given field to a new value for the given post ID.

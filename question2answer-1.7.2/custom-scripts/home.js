@@ -1,5 +1,5 @@
 initialize();
-var navLinks = null;
+var navLinks = 0;
 function keycheck(event)
 {
     var key = event.keyCode;
@@ -48,6 +48,8 @@ function search()
 
                 // create link
                 var l = document.createElement("a");
+                // set name
+                l.name = pagedata[x].LName;
                 // set link to top of page
                 l.href = "#";
                 // set displayed text of link
@@ -59,6 +61,7 @@ function search()
 
                 if (pagedata[x].hasOwnProperty("PName")) {
                     var p = document.createElement("a");
+                    p.name = pagedata[x].PName;
                     p.href = "#";
                     p.innerHTML = " \\ " + pagedata[x].PName;
                     p.setAttribute("onclick", "nav(\"" + pagedata[x].PName + "\", " + pagedata[x].PID + ", \"" + "Package" + "\", 2, " + x + ")");
@@ -66,6 +69,7 @@ function search()
                 }
                 if (pagedata[x].hasOwnProperty("TName")) {
                     var c = document.createElement("a");
+                    c.name = pagedata[x].TName;
                     c.href = "#";
                     c.innerHTML = " \\ " + pagedata[x].TName;
                     c.setAttribute("onclick", "nav(\"" + pagedata[x].TName + "\", " + pagedata[x].TID + ", \"" + "Class" + "\", 3, " + x + ")");
@@ -73,6 +77,7 @@ function search()
                 }
                 if (pagedata[x].hasOwnProperty("MName")) {
                     var m = document.createElement("a");
+                    m.name = pagedata[x].MName + "(" + pagedata[x].Args + ")";
                     m.href = "#";
                     m.innerHTML = " \\ " + pagedata[x].MName + "(" + pagedata[x].Args + ")";
                     m.setAttribute("onclick", "nav(\"" + pagedata[x].MName + "\", " + pagedata[x].MID + ", \"" + "Method" + "\", 4, " + x +")");
@@ -80,7 +85,7 @@ function search()
                     //     nav(pagedata[x].MName, pagedata[x].MID, "Method", links);
                     // });
                     links[links.length] = m;
-                    console.log(m);
+                    //console.log(m);
                 }
                 //console.log(links[0]);
                 for (var j = 0; j < links.length; j++) {
@@ -92,7 +97,17 @@ function search()
             }
         });
 }
-
+// for debugging
+// function printNodes(nodes)
+// {
+//     var num = nodes.length;
+//     console.log("nodes length: " + num);
+//     console.log("print nodes:");
+//     for (var x = 0; x < num; x++)
+//     {
+//         console.log(nodes[x]);
+//     }
+// }
 function nav(name, id, type, numLinks, linksIndex)
 {
     // Update navigation links. If name is in list, delete elements after name.
@@ -103,18 +118,20 @@ function nav(name, id, type, numLinks, linksIndex)
     var found = false;
     var nodes = navigation.childNodes;
     var index;
-    var links;
-    if (navLinks == null)
+    if (navLinks === 0)
     {
+
         for (var x = 0; x < numchild; x++)
         {
-            child = nodes[x];
+            if(!found)
+                child = nodes[x];
             if (found) {
                 navigation.removeChild(nodes[index]);
             }
             else if (child.name == name) {
                 found = true;
                 index = x + 1;
+                //console.log("found");
             }
         }
         if (!found) {
@@ -127,7 +144,6 @@ function nav(name, id, type, numLinks, linksIndex)
         }    
     }else
     {
-        console.log(navLinks);
         //remove old links on navigation bar
         for (var x = 1; x < numchild; x++)
         {
@@ -205,7 +221,7 @@ function nav(name, id, type, numLinks, linksIndex)
                 pageBox.appendChild(a);
                 var br = document.createElement("br");
                 pageBox.appendChild(br);
-                console.log("a: " + a);
+                //console.log("a: " + a);
             }
         });
     }
@@ -237,7 +253,8 @@ function nav(name, id, type, numLinks, linksIndex)
     else {
         source.style.display = 'none';
     }
-	navLinks = null;
+	navLinks = 0;
+    console.log(navLinks);
 	genRelatedDiscussions();
 }
 
