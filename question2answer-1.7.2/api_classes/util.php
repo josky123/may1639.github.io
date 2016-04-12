@@ -13,8 +13,7 @@ abstract class CallableData
 	
 	protected function condition_combine($arr, $logic="AND")
 	{
-		$logic = strtoupper($logic);
-		$logic = trim($logic);
+		$logic = trim(strtoupper($logic));
 		$to_remove = array();
 		$arr = array_unique($arr);
 		foreach ($arr as $key => $value)
@@ -662,9 +661,70 @@ abstract class CallableData
 		return $this->condition_combine($arr);
 	}
 
+	protected function parse_string_condition($string_var_name)
+	{
+		$regex = "~(?<!\S)(?<negate>-)?".$string_var_name.":(?<argument>[^\s\"]+|(?:\"[^\"]+\"))(?!\S)~";
+		preg_match_all($regex, $_GET['conditions'], $string_matches, PREG_SET_ORDER);
+		if(!empty($string_matches))
+		{
+			$includes = array();
+			$excludes = array();
+			foreach($string_matches as $key => &$match)
+			{
+				$match['negate'] = (boolean) !empty($match['negate']);
+				$match['argument'] = trim($match['argument'], "\"");
+				
+				$mapping = $this->valid_var_mappings();
+
+				if($match['negate'])
+				{
+					array_push($excludes, $mapping[$string_var_name]." LIKE \"%".$match['argument']."%\"");
+				}
+				else
+				{
+					array_push($includes, $mapping[$string_var_name]." LIKE \"%".$match['argument']."%\"");
+				}
+			}
+
+			$includes = array_unique($includes);
+			if(count($includes) > 0)
+			{
+				$includes = $this->condition_combine($includes, "AND");
+			}
+			else
+			{
+				$includes = "TRUE";
+			}
+
+			$excludes = array_unique($excludes);
+			if(count($excludes) > 0)
+			{
+				$excludes = "NOT ".$this->condition_combine($excludes, "OR");
+			}
+			else
+			{
+				$excludes = "TRUE";
+			}
+			return $this->condition_combine(array($includes, $excludes));
+		}
+		else
+		{
+			return "TRUE";
+		}
+	}
+
 	protected function get_string_conditions()
 	{
-		return "TRUE";
+		$valid_string_vars = $this->valid_string_vars();
+		$arr = array();
+		if(!empty($valid_string_vars))
+		{
+			foreach($valid_string_vars as $key => $var_name)
+			{
+				array_push($arr, $this->parse_string_condition($var_name));
+			}
+		}
+		return $this->condition_combine($arr);
 	}
 
 	protected function get_normal_conditions()
@@ -848,8 +908,6 @@ abstract class CallableData
 
 	public function get_query()
 	{
-		if(!$this->is_valid_call())
-			return false;
 		$query = $this->get_base_call();
 		$filters = array();
 		$all_conditions = $this->condition_combine(
@@ -871,4 +929,5 @@ abstract class CallableData
 		return $query;
 	}
 }
+
 ?>

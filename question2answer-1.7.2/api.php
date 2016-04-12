@@ -52,7 +52,6 @@ This file will allow us to execute database queries off of Q2A's code.
 */
 require './qa-include/qa-base.php';
 
-
 $results = qa_db_query_raw($ret_type->get_query());
 
 /**
