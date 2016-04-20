@@ -15,7 +15,7 @@ class Answer extends CallableData
 	var $last_activity_date;
 	var $last_edit_date;
 	
-	public function is_valid_call()
+	protected function is_valid_call()
 	{
 		return preg_match("~^/answers$~", $_SERVER['PATH_INFO']);
 	}

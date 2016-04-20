@@ -8,7 +8,7 @@ class Tag extends CallableData
 	var $count;
 	var $last_activity_date;
 	
-	public function is_valid_call()
+	protected function is_valid_call()
 	{
 		return preg_match("~^/tags$~", $_SERVER['PATH_INFO']);
 	}

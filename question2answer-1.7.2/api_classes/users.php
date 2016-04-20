@@ -18,7 +18,7 @@ class User extends CallableData
 	var $last_access_date;
 	var $last_modified_date;
 	
-	public function is_valid_call()
+	protected function is_valid_call()
 	{
 		return preg_match("~^/users$~", $_SERVER['PATH_INFO']);
 	}

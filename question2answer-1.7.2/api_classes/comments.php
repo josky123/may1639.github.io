@@ -11,7 +11,7 @@ class Comment extends CallableData
 	var $edited;
 	var $creation_date;
 
-	public function is_valid_call()
+	protected function is_valid_call()
 	{
 		return preg_match("~^/comments$~", $_SERVER['PATH_INFO']);
 	}
