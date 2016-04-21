@@ -1,5 +1,7 @@
 <?php
 
+ini_set('max_execution_time', 600); //300 seconds = 5 minutes
+
 $servername = "localhost";
 $username = "root";
 $password = "YamadaKun2016";
@@ -29,64 +31,98 @@ $viewWeight = 1;
 // The number of results to print
 $numResultsToPrint = 25;
 
-//Get Title words
-$titleQuery = "SELECT Post_ID FROM dictionary_post_join WHERE (Word='".$className."' OR Word='".$methodName."') AND Is_Tag = 0";
-$titleCheck = $conn->query($titleQuery);					
+// Get the word IDs
+$idQuery = "SELECT Word_ID FROM dictionary WHERE (Word='".$className."' OR Word='".$methodName."')";
+$idCheck = $conn->query($idQuery);
 
-// If the result is okay...
-if( $titleCheck == TRUE && $titleCheck->num_rows > 0){
+$titleQuery;
+$tagQuery;
 
-	for( $i = 0; $i < $titleCheck->num_rows; $i++){
-		$row = $titleCheck->fetch_row();
-		$index = getRankIndex( $rankArray, $row[0] );
-		
-		if( $index > -1 ){
-			$rankArray[$index][1]++;
-		}
-		else{
-			$index = count($rankArray);
-			$rankArray[$index] = array(0,0,0,0,0,0);
-			$rankArray[$index][0] = $row[0];
-			$rankArray[$index][1]++;
+if( $idCheck == TRUE && $idCheck->num_rows > 0 ){
+	
+//	print_r($idCheck);
+	
+	if( $idCheck->num_rows == 1 ){
+		$row1 = $idCheck->fetch_row();
+		print_r($row1);
+		echo "<br>";
+		$titleQuery = "SELECT Post_ID FROM rp_join WHERE (Word_ID='".$row1[0]."') AND Is_Tag = 0";
+		$tagQuery = "SELECT Post_ID FROM rp_join WHERE (Word_ID='".$row1[0]."') AND Is_Tag = 1";
+	}
+	else{
+		$row1 = $idCheck->fetch_row();
+		print_r($row1);
+		echo "<br>";
+		$row2 = $idCheck->fetch_row();
+		print_r($row2);
+		echo "<br>";
+		$titleQuery = "SELECT Post_ID FROM rp_join WHERE (Word_ID='".$row1[0]."' OR Word_ID='".$row2[0]."') AND Is_Tag = 0";
+		$tagQuery = "SELECT Post_ID FROM rp_join WHERE (Word_ID='".$row1[0]."' OR Word_ID='".$row2[0]."') AND Is_Tag = 1";
+	}
+	
+	//Get Title words
+	//$titleQuery = "SELECT Post_ID FROM dictionary_post_join WHERE (Word='".$className."' OR Word='".$methodName."') AND Is_Tag = 0";
+	$titleCheck = $conn->query($titleQuery);					
+
+	// If the result is okay...
+	if( $titleCheck == TRUE && $titleCheck->num_rows > 0){
+
+		for( $i = 0; $i < $titleCheck->num_rows; $i++){
+			$row = $titleCheck->fetch_row();
+			$index = getRankIndex( $rankArray, $row[0] );
+			
+			if( $index > -1 ){
+				$rankArray[$index][1]++;
+			}
+			else{
+				$index = count($rankArray);
+				$rankArray[$index] = array(0,0,0,0,0,0);
+				$rankArray[$index][0] = $row[0];
+				$rankArray[$index][1]++;
+			}
 		}
 	}
-}
-else{
-	echo "No words in titles<br>";
-}
+	else{
+		echo "No words in titles<br>";
+	}
 
 
+	//Get Tag words
+	//$tagQuery = "SELECT Post_ID FROM dictionary_post_join WHERE (Word='".$className."' OR Word='".$methodName."') AND Is_Tag = 1";
+	$tagCheck = $conn->query($tagQuery);					
 
-//Get Tag words
-$tagQuery = "SELECT Post_ID FROM dictionary_post_join WHERE (Word='".$className."' OR Word='".$methodName."') AND Is_Tag = 1";
-$tagCheck = $conn->query($tagQuery);					
+	// If the result is okay...
+	if( $tagCheck == TRUE && $tagCheck->num_rows > 0){
 
-// If the result is okay...
-if( $tagCheck == TRUE && $tagCheck->num_rows > 0){
-
-	for( $i = 0; $i < $tagCheck->num_rows; $i++){
-		$row = $tagCheck->fetch_row();
-		$index = getRankIndex( $rankArray, $row[0] );
-		
-		if( $index > -1 ){
-			$rankArray[$index][2]++;
-		}
-		else{
-			$index = count($rankArray);
-			$rankArray[$index] = array(0,0,0,0,0,0);
-			$rankArray[$index][0] = $row[0];
-			$rankArray[$index][2]++;
+		for( $i = 0; $i < $tagCheck->num_rows; $i++){
+			$row = $tagCheck->fetch_row();
+			$index = getRankIndex( $rankArray, $row[0] );
+			
+			if( $index > -1 ){
+				$rankArray[$index][2]++;
+			}
+			else{
+				$index = count($rankArray);
+				$rankArray[$index] = array(0,0,0,0,0,0);
+				$rankArray[$index][0] = $row[0];
+				$rankArray[$index][2]++;
+			}
 		}
 	}
+	else{
+		echo "No Tags<br>";
+	}
+
+	$rankArray = getPostDetails($conn, $rankArray);
+	$rankedResults = getRankResultArray($rankArray, $titleWeight, $tagWeight, $scoreWeight, $viewWeight);
+
+	printRankedResultLinks( $rankedResults, $numResultsToPrint );
 }
 else{
-	echo "No Tags<br>";
+	echo "No Results for Class: ".$className." and Method: ".$methodName."<br>";
 }
 
-$rankArray = getPostDetails($conn, $rankArray);
-$rankedResults = getRankResultArray($rankArray, $titleWeight, $tagWeight, $scoreWeight, $viewWeight);
 
-printRankedResultLinks( $rankedResults, $numResultsToPrint );
 //echo "<br>";
 //print2DArray($rankedResults);
 //print2DArray($rankArray);
@@ -149,7 +185,7 @@ function getMaxRankValue( $arr, $secondIndex ){
 
 function getMinRankValue( $arr, $secondIndex ){
 	
-	$min;
+	$min = 0;
 	
 	for( $i = 0; $i < count($arr); $i++ ){
 		

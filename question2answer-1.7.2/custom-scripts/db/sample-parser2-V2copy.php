@@ -34,6 +34,7 @@ $answerCount;
 $commentCount;
 $favCount;
 $communityOwnedDate;
+$body;
 
 // Globals for Dictionary Information
 $word;
@@ -62,12 +63,17 @@ $postQuery = "INSERT INTO Posts (Post_ID, PostTypeId, AcceptedAnswerId, ParentId
 
 $dictionaryInsertQuery = "INSERT IGNORE INTO Dictionary (Word) VALUES ( ? )";
 
+$joinQuery = "INSERT INTO dictionary_post_join (Post_ID, Word, Is_Tag) VALUES ( ?, ?, ? )";
+
 $preparePost = $conn->prepare($postQuery);
 $prepareDict = $conn->prepare($dictionaryInsertQuery);
+$prepareJoin = $conn->prepare($joinQuery);
 
 $preparePost->bind_param( "iiiisiiisissssiiis", $id, $postType, $acceptedId, $parentId, $creationDate, $score, $viewCount, $ownerId, $ownerName, $lastEditorId, $lastEditorName, $lastEditDate, $lastActivityDate, $title, $answerCount, $commentCount, $favCount, $communityOwnedDate );
 
 $prepareDict->bind_param( "s", $word );
+
+$prepareJoin->bind_param( "isi", $id, $word, $isTag );
 
 $conn->query("START TRANSACTION");
 while( $xml->read() && $count < 1000000 ){
@@ -80,11 +86,10 @@ while( $xml->read() && $count < 1000000 ){
 		 */
 		$id = $xml->getAttribute('Id');
 		
-		/*
 		if( $id < 1282393 ){
 			continue;
 		}
-		*/
+		
 		echo "Current ID:  ".$id.",  Current Count:  ".$count."<br>";
 		//echo "                            Current Count:  ".$count."<br>";
 		
@@ -115,7 +120,7 @@ while( $xml->read() && $count < 1000000 ){
 		$commentCount = $xml->getAttribute('CommentCount');
 		$favCount = $xml->getAttribute('FavoriteCount');
 		$communityOwnedDate = $xml->getAttribute('CommunityOwnedDate');
-		//$body = $xml->getAttribute('Body');
+		$body = $xml->getAttribute('Body');
 		
 		$preparePost->execute();
 	
@@ -189,11 +194,6 @@ function removePunctuationFromString( $str ){
 	$str = str_replace("\""," ",$str);
 	$str = str_replace("/"," ",$str);
 	$str = str_replace("\t"," ",$str);
-	$str = str_replace("$"," ",$str);
-	$str = str_replace("%"," ",$str);
-	$str = str_replace("*"," ",$str);
-	$str = str_replace("="," ",$str);
-	$str = str_replace("_"," ",$str);
 	
 	return $str;
 }
