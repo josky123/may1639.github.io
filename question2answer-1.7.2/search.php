@@ -6,7 +6,11 @@
 	// Retrieve link info
 	$result;
 	$type = $_POST["searchType"];
-	$name = $_POST["name"];
+	$name = "%" . $_POST["name"] . "%";
+	$search1 = $_POST["name"];
+	$search2 = $_POST["name"] . "%";
+	$search3 = "%" . $_POST["name"];
+	//$name = $_POST["name"];
 	if ($type == "Library") {
 		searchLibrary();
 	}
@@ -37,7 +41,7 @@
 		global $name;
 		$result = qa_db_query_raw(" SELECT m.Name AS MName, m.ID AS MID, m.Arguments AS Args, t.Name AS TName, t.ID AS TID, p.Name AS PName, p.ID AS PID, l.Name AS LName, l.ID AS LID
 									FROM method m, type t, package p, library l
-									WHERE m.Name = '$name' AND m.TID = t.ID AND t.PID = p.ID AND p.LID = l.ID 
+									WHERE m.Name LIKE '$name' AND m.TID = t.ID AND t.PID = p.ID AND p.LID = l.ID 
 									ORDER BY p.Name");
 	}
 	function searchType() {
@@ -45,7 +49,7 @@
 		global $name;
 		$result = qa_db_query_raw(" SELECT t.Name AS TName, t.ID AS TID, p.Name AS PName, p.ID AS PID, l.Name AS LName, l.ID AS LID
 									FROM type t, package p, library l
-									WHERE t.Name = '$name' AND t.PID = p.ID AND p.LID = l.ID 
+									WHERE t.Name LIKE '$name' AND t.PID = p.ID AND p.LID = l.ID 
 									ORDER BY t.Name");
 	}
 	function searchPackage() {
@@ -53,7 +57,7 @@
 		global $name;
 		$result = qa_db_query_raw(" SELECT p.Name AS PName, p.ID AS PID, l.Name AS LName, l.ID AS LID
 									FROM package p, library l
-									WHERE p.Name = '$name' AND p.LID = l.ID 
+									WHERE p.Name LIKE '$name' AND p.LID = l.ID 
 									ORDER BY p.Name");
 	}
 	function searchLibrary() {
@@ -61,7 +65,7 @@
 		global $name;
 		$result = qa_db_query_raw(" SELECT l.Name AS LName, l.ID AS LID
 									FROM library l
-									WHERE l.Name = '$name' 
+									WHERE l.Name LIKE '$name' 
 									ORDER BY l.Name");
 	}
 

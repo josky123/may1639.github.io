@@ -64,8 +64,10 @@
 	{
 		// get URL and file name
 		$url = $_POST["URL"];
-		$filename = pathinfo($url, PATHINFO_FILENAME);
-		$filepath = $target_dir . $filename['filename'];
+		//$filename = pathinfo($url, PATHINFO_FILENAME);
+		$filename = $_POST["FileName"];
+		//$filepath = $target_dir . $filename['filename'];
+		$filepath = $target_dir . $filename;
 
 		$isOk = false;
 

@@ -15,7 +15,7 @@
 		{	// moove file to extact folder, unzip, delete file, parse new folder and add new java library to database
 			copy($path . "/" . $name, $dest . "/" . $name);
 			chdir($dest);
-			exec("jar xf " . $name);
+			echo exec("jar xf " . $name);
 			unlink($name);
 			$source = pathinfo($name, PATHINFO_FILENAME);
 			// run parser on file and add it to the database

@@ -6,9 +6,13 @@
 <br>
 <p>Upload file from URL</p>
 <div id="fileFromLink">
+		URL: 
         <input id="URLBox" type="text" onkeypress="keycheck(event)">
         <button id="URLButton" type="button" onclick="getFromURL()">Upload</button>
-<br>
+        <br><br>
+        Name: 
+        <input id="URLNameBox" type="text" onkeypress="keycheck(event)">
+<br><br>
 <div id="contents">
 	<h1 id="contentsHeader">Uploaded Files</h1>
 	<table id="fileTable">
@@ -23,6 +27,7 @@ var form = document.getElementById('file-form');
 var fileSelect = document.getElementById('file-select');
 var uploadButton = document.getElementById('upload-button');
 var URLBox = document.getElementById('URLBox');
+var URLNameBox = document.getElementById('URLNameBox');
 
 form.onsubmit = function(event) 
 {
@@ -142,7 +147,7 @@ function getFromURL()
 {
 	//console.log(URLBox.value);
 	var response = "";
-	var request = $.post("http://may1639-2.ece.iastate.edu/q2a/upload.php", {"source": "URL", "URL": URLBox.value}, function(data,status,xhr) {response = data;},"text");
+	var request = $.post("http://may1639-2.ece.iastate.edu/q2a/upload.php", {"source": "URL", "URL": URLBox.value, "FileName": URLNameBox.value}, function(data,status,xhr) {response = data;},"text");
 	request.done(function() { displayFiles(); alert(response) } );
 }
 </script>
