@@ -4,8 +4,8 @@ ini_set('max_execution_time', 600); //300 seconds = 5 minutes
 
 $servername = "localhost";
 $username = "root";
-$password = "YamadaKun2016";
-$dbname = "Related_Posts";
+$password = "9nbje09p";
+$dbname = "may1639_db";
 
 // Create connection
 $conn = new mysqli($servername, $username, $password, $dbname);
