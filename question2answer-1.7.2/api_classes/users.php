@@ -10,7 +10,7 @@ class User extends CallableData
 	var $reputation;
 	var $up_vote_count;
 	var $down_vote_count;
-	var $badge_counts;
+	var $badge_count;
 	var $question_count;
 	var $answer_count;
 	var $accept_rate;
@@ -32,7 +32,7 @@ class User extends CallableData
 	{
 		$this->accept_rate = (integer) $row['accept_rate'];
 		$this->answer_count = (integer) $row['answer_count'];
-		$this->badge_counts = (integer) $row['badge_counts'];
+		$this->badge_count = (integer) $row['badge_count'];
 		$this->creation_date = $row['creation_date'];
 		$this->display_name = $row['display_name'];
 		$this->down_vote_count = (integer) $row['down_vote_count'];
@@ -54,7 +54,7 @@ class User extends CallableData
 		return array(
 			"accept_rate",
 			"answer_count",
-			"badge_counts",
+			"badge_count",
 			"down_vote_count",
 			"question_count",
 			"reputation",
@@ -84,7 +84,7 @@ class User extends CallableData
 		return array(
 			"accept_rate" => "U.`accept_rate`",
 			"answer_count" => "U.`answer_count`",
-			"badge_counts" => "U.`badge_counts`",
+			"badge_count" => "U.`badge_count`",
 			"creation_date" => "U.`creation_date`",
 			"display_name" => "U.`display_name`",
 			"down_vote_count" => "U.`down_vote_count`",
@@ -103,7 +103,7 @@ class User extends CallableData
 	(SELECT
 		P.`aselecteds`	AS	`accept_rate`,
 		P.`aposts`	AS	`answer_count`,
-		B.`badge_counts`	AS	`badge_counts`,
+		B.`badge_count`	AS	`badge_count`,
 		U.`created`	AS	`creation_date`,
 		U.`handle`	AS	`display_name`,
 		P.`downvoteds`	AS	`down_vote_count`,
@@ -121,7 +121,7 @@ class User extends CallableData
 		U.`userid` = P.`userid`
 	JOIN
 		(SELECT
-			COUNT(B.`badge_slug`) AS `badge_counts`,
+			COUNT(B.`badge_slug`) AS `badge_count`,
 			B.`user_id`
 		FROM
 			`qa_userbadges` B
