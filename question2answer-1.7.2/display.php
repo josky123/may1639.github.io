@@ -54,11 +54,11 @@
 		// create download links
 		$links[] = "<a href=\"" . $path . "/" . $entry . "\" download=\"". $entry . "\">" . $entry . "</a>";
 		// create parse buttons
-		$parseButtons[] = "<button type=\"button\" onclick=\"" . "parseFile('" . $entry . "')\">" . "Add Library" . "</button>";
+		$parseButtons[] = "<button type=\"button\" onclick=\"" . "parseFile('" . $entry . "')\">" . "Add Archive" . "</button>";
 		// create delete buttons
 		$deleteButtons[] = "<button type=\"button\" onclick=\"" . "deleteFile('" . $entry . "')\">" . "Delete File" . "</button>";
 		// create remove buttons
-		$removeButtons[] = "<button type=\"button\" onclick=\"" . "removeFile('" . $entry . "')\">" . "Remove Library" . "</button>";
+		$removeButtons[] = "<button type=\"button\" onclick=\"" . "removeFile('" . $entry . "')\">" . "Remove Archive" . "</button>";
 	}
 
 	// var_dump($links);
